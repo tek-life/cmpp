@@ -5,15 +5,13 @@
  * Update: 2017-07-10
  */
 
-#ifndef _CMPP_H
-#define _CMPP_H
+#ifndef _CMPP2_H
+#define _CMPP2_H
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
 
-#define CMPP_SP   1
-#define CMPP_ISMG 2
 #define CMPP_VERSION 0x20
 #define CMPP_PACK_MAX 4096
 
@@ -107,40 +105,47 @@ typedef struct {
     int conTimeout;
     int sendTimeout;
     int recvTimeout;
+    pthread_mutex_t rlock;
+    pthread_mutex_t wlock;
 } CMPP_SOCK_T;
 
 /* Cmpp Session Handle */
 typedef struct {
     bool ok;
-    int mode;
     char *err;
     CMPP_SOCK_T sock;
     pthread_mutex_t lock;
     unsigned char version;
     unsigned int (*sequence)(void);
-} CMPP_T;
+} CMPP_SP_T;
 
-#define IS_SP(mode) ((mode) == CMPP_SP) ? true : false
-#define IS_ISMG(mode) ((mode) == CMPP_ISMG) ? true : false
+/* Cmpp Session Handle */
+typedef struct {
+    char *err;
+    unsigned char version;
+    unsigned int (*sequence)(void);
+} CMPP_ISMG_T;
 
-extern int cmpp_init(CMPP_T *cmpp, const char *host, unsigned short int port, int mode);
-extern int cmpp_connect(CMPP_T *cmpp, const char *user, const char *password);
-extern int cmpp_connect_resp(CMPP_T *cmpp);
-extern int cmpp_terminate(CMPP_T *cmpp);
-extern int cmpp_terminate_resp(CMPP_T *cmpp);
-extern int cmpp_submit(CMPP_T *cmpp, const char *phone, const char *message,
-                       bool delivery, char *serviceId, char *msgFmt, char *msgSrc, char *srcId);
-extern int cmpp_submit_resp(CMPP_T *cmpp);
-extern int cmpp_deliver(CMPP_T *cmpp);
-extern int cmpp_deliver_resp(CMPP_T *cmpp);
-extern int cmpp_active_test(CMPP_T *cmpp);
-extern int cmpp_active_test_resp(CMPP_T *cmpp);
-extern int cmpp_event_loop(CMPP_T *cmpp);
-extern int cmpp_close(CMPP_T *cmpp);
+extern int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port);
+extern int cmpp_init_ismg(CMPP_ISMG_T *cmpp, void *(*kpthread) (void *));
+extern int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password);
+extern int cmpp_connect_resp(CMPP_SP_T *cmpp);
+extern int cmpp_terminate(CMPP_SP_T *cmpp);
+extern int cmpp_terminate_resp(CMPP_SP_T *cmpp);
+extern int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool delivery,
+                       char *serviceId, char *msgFmt, char *msgSrc);
+extern int cmpp_submit_resp(CMPP_SP_T *cmpp);
+extern int cmpp_deliver(CMPP_SP_T *cmpp);
+extern int cmpp_deliver_resp(CMPP_SP_T *cmpp);
+extern int cmpp_active_test(CMPP_SP_T *cmpp);
+extern int cmpp_active_test_resp(CMPP_SP_T *cmpp);
+extern int cmpp_event_loop(CMPP_SP_T *cmpp);
+extern int cmpp_close(CMPP_SP_T *cmpp);
 extern unsigned int gen_sequence(void);
-extern bool cmpp_send(CMPP_T *cmpp, void *pack, size_t len);
-extern bool cmpp_recv(CMPP_T *cmpp, void *pack, size_t len);
-extern int cmpp_head(CMPP_HEAD_T *chp, unsigned int tl, unsigned int ci, unsigned int si);
+extern bool cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len);
+extern bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len);
+extern int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool delivery,
+                       char *serviceId, char *msgFmt, char *msgSrc);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);

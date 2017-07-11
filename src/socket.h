@@ -5,15 +5,17 @@
  * Update: 2017-05-18
  */
 
-#ifndef _CMPP_SOCKET_H
-#define _CMPP_SOCKET_H
+#ifndef _CMPP2_SOCKET_H
+#define _CMPP2_SOCKET_H
 
 #include <stdbool.h>
 #include "cmpp.h"
 
 #define CMPP_SOCK_SEND 1
 #define CMPP_SOCK_RECV 2
- 
+
+int cmpp_sock_init(CMPP_SOCK_T *sock);
+int cmpp_sock_setting(CMPP_SOCK_T *sock, int conTimeout, int sendTimeout, int recvTimeout);
 int cmpp_sock_create(void);
 int cmpp_sock_bind(CMPP_SOCK_T *sock, const char *addr, unsigned short port, int backlog);
 int cmpp_sock_connect(CMPP_SOCK_T *sock, const char *addr, unsigned short port);

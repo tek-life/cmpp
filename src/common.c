@@ -23,7 +23,7 @@ unsigned int gen_sequence(void) {
     return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
 }
 
-bool cmpp_send(CMPP_T *cmpp, void *pack, size_t len) {
+bool cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
     int ret = 0;
     CMPP_HEAD_T *chp;
 
@@ -42,7 +42,7 @@ bool cmpp_send(CMPP_T *cmpp, void *pack, size_t len) {
     return true;
 }
 
-bool cmpp_recv(CMPP_T *cmpp, void *pack, size_t len) {
+bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     int ret;
     int chpLen = 0;
     int pckLen = 0;
@@ -71,11 +71,11 @@ bool cmpp_recv(CMPP_T *cmpp, void *pack, size_t len) {
     return true;
 }
 
-int cmpp_head(CMPP_HEAD_T *chp, unsigned int tl, unsigned int ci, unsigned int si) {
+int cmpp_add_header(CMPP_HEAD_T *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
     if (chp) {
-        chp->totalLength = htonl(tl);
-        chp->commandId = htonl(ci);
-        chp->sequenceId = htonl(si);
+        chp->totalLength = htonl(totalLength);
+        chp->commandId = htonl(commandId);
+        chp->sequenceId = htonl(sequenceId);
         return 0;
     }
 
@@ -122,7 +122,7 @@ int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* 
     return -1;
 }
 
-int cmpp_event_loop(CMPP_T *cmpp) {
+int cmpp_event_loop(CMPP_SP_T *cmpp) {
     int client;
     socklen_t socklen;
     struct sockaddr_in sockaddr;

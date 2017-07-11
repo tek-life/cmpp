@@ -5,8 +5,8 @@
  * Update: 2017-05-18
  */
 
-#ifndef _CMPP_PACKET_H
-#define _CMPP_PACKET_H
+#ifndef _CMPP2_PACKET_H
+#define _CMPP2_PACKET_H
 
 #include "string.h"
 

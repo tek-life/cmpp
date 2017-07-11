@@ -18,8 +18,15 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <pthread.h>
 #include "socket.h"
 #include "common.h"
+
+int cmpp_sock_init(CMPP_SOCK_T *sock) {
+    pthread_mutex_init(&sock->rlock, NULL);
+    pthread_mutex_init(&sock->wlock, NULL);
+    return 0;
+}
 
 int cmpp_sock_create(void) {
     int fd;
@@ -30,6 +37,14 @@ int cmpp_sock_create(void) {
     }
 
     return fd;
+}
+
+int cmpp_sock_setting(CMPP_SOCK_T *sock, int conTimeout, int sendTimeout, int recvTimeout) {
+    sock->conTimeout = conTimeout;
+    sock->sendTimeout = sendTimeout;
+    sock->recvTimeout = recvTimeout;
+
+    return 0;
 }
 
 int cmpp_sock_bind(CMPP_SOCK_T *sock, const char *addr, unsigned short port, int backlog) {
@@ -80,6 +95,8 @@ int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     int ret = 0;
     int offset = 0;
 
+    pthread_mutex_lock(&sock->wlock);
+
     /* Start sending data */
     while (offset < len) {
         ret = write(sock->fd, buff + offset, len - offset);
@@ -95,43 +112,32 @@ int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
         }
     }
 
+    pthread_mutex_unlock(&sock->wlock);
+
     return offset;
 }
 
 int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     int ret = 0;
     int offset = 0;
-    int exception = 0;
+
+    pthread_mutex_lock(&sock->rlock);
+    
+    /* Setting socket receive timeout */
+    cmpp_sock_timeout(sock, CMPP_SOCK_RECV, sock->conTimeout);
+
 
     /* Begin to receive data */
     while (offset < len) {
         ret = read(sock->fd, buff + offset, len - offset);
         if (ret > 0) {
             offset += ret;
-            exception = 0;
-        } else if (ret == -1) {
-            if (exception > 2) {
-                break;
-            }
-
-            if (errno == EAGAIN) {
-                exception++;
-                sleep(1);
-            }
-            
-            if (errno == ECONNRESET) {
-                return -1;
-            }
-            
-            if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                return -1;
-            }
-
             continue;
-        } else if (ret == 0) {
-            break;
         }
+        break;
     }
+
+    pthread_mutex_unlock(&sock->wlock);
 
     return offset;
 }

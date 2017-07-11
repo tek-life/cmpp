@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <sys/types.h>
@@ -23,7 +24,7 @@
 #include "common.h"
 #include "socket.h"
 
-int cmpp_init(CMPP_T *cmpp, const char *host, unsigned short int port, int mode) {
+int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
     if (!cmpp) {
         return -1;
     }
@@ -31,40 +32,29 @@ int cmpp_init(CMPP_T *cmpp, const char *host, unsigned short int port, int mode)
     int err;
     cmpp->ok = false;
     cmpp->err = NULL;
-    cmpp->mode = mode;
-    cmpp->sock.conTimeout = 3000;
-    cmpp->sock.sendTimeout = 50;
-    cmpp->sock.recvTimeout = 50;
     cmpp->version = CMPP_VERSION;
-
     pthread_mutex_init(&cmpp->lock, NULL);
 
+    /* Initialize the socket settings */
+    cmpp_sock_init(&cmpp->sock);
+    cmpp_sock_setting(&cmpp->sock, 3000, 3000, 3000);
+
+    /* Create a new socket */
     cmpp->sock.fd = cmpp_sock_create();
     if (cmpp->sock.fd < 1) {
         cmpp->err = "Can't create socket";
         return CMPP_ERR_INITCCS;
     }
 
-    /* SP Client Mode */
-    if (IS_SP(cmpp->mode)) {
-        err = cmpp_sock_connect(&cmpp->sock, host, port);
-        if (err) {
-            cmpp->err = "Can't connect to server";
-            return CMPP_ERR_INITCCTS;
-        }
-    }
-
-    /* ISMG Gateway Mode */
-    if (IS_ISMG(cmpp->mode)) {
-        err =  cmpp_sock_bind(&cmpp->sock, host, port, 512);
-        if (err) {
-            cmpp->err = "Can't bind socket server";
-            return CMPP_ERR_INITCBSS;
-        }
+    /* Connect to server */
+    err = cmpp_sock_connect(&cmpp->sock, host, port);
+    if (err) {
+        cmpp->err = "Can't connect to server";
+        return CMPP_ERR_INITCCTS;
     }
 
     /* TCP NONBLOCK */
-    cmpp_sock_nonblock(&cmpp->sock, true);
+    //cmpp_sock_nonblock(&cmpp->sock, true);
 
     /* TCP NODELAY */
     cmpp_sock_tcpnodelay(&cmpp->sock, true);
@@ -77,7 +67,7 @@ int cmpp_init(CMPP_T *cmpp, const char *host, unsigned short int port, int mode)
     return 0;
 }
 
-int cmpp_close(CMPP_T *cmpp) {
+int cmpp_close(CMPP_SP_T *cmpp) {
     if (cmpp) {
         cmpp->ok = false;
         cmpp->err = NULL;
@@ -88,7 +78,7 @@ int cmpp_close(CMPP_T *cmpp) {
     return -1;
 }
 
-int cmpp_connect(CMPP_T *cmpp, const char *user, const char *password) {
+int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
     if (!cmpp) {
         return -1;
     }
@@ -97,7 +87,7 @@ int cmpp_connect(CMPP_T *cmpp, const char *user, const char *password) {
     memset(&ccp, 0, sizeof(ccp));
     
     /* Header */
-    cmpp_head((CMPP_HEAD_T *)&ccp, sizeof(ccp), CMPP_CONNECT, cmpp->sequence());
+    cmpp_add_header((CMPP_HEAD_T *)&ccp, sizeof(ccp), CMPP_CONNECT, cmpp->sequence());
 
     /* Source_Addr */
     memcpy(ccp.sourceAddr, user, sizeof(ccp.sourceAddr));
@@ -132,26 +122,26 @@ int cmpp_connect(CMPP_T *cmpp, const char *user, const char *password) {
 
     /* Send Cmpp_Connect packet */
     len = sizeof(ccp);
-    pthread_mutex_lock(&cmpp->lock);
+
     if (!cmpp_send(cmpp, &ccp, sizeof(ccp))) {
-        cmpp->err = "Cmpp sned cmpp_connect packet failed";
+        cmpp->err = "Cmpp send cmpp_connect packet failed";
         return CMPP_ERR_CONSCPE;
     }
-
+    
     /* Confirm response status */
     int status;
     CMPP_PACK_T pack;
     CMPP_CONNECT_RESP_T *ccrp;
-    
+
     cmpp_recv(cmpp, &pack, sizeof(pack));
-    pthread_mutex_unlock(&cmpp->lock);
+
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_CONNECT_RESP)) {
         cmpp->err = "Cmpp server response packet error";
         return CMPP_ERR_CONSRPE;
     }
 
     ccrp = (CMPP_CONNECT_RESP_T *)&pack;
-    //status = ntohl(ccrp->status);
+    /* status = ntohl(ccrp->status); */
     status = ccrp->status;
 
     if (status != 0) {
@@ -178,17 +168,15 @@ int cmpp_connect(CMPP_T *cmpp, const char *user, const char *password) {
     return 0;
 }
 
-int cmpp_active_test(CMPP_T *cmpp) {
+int cmpp_active_test(CMPP_SP_T *cmpp) {
     if (!cmpp) {
         return -1;
     }
 
     CMPP_ACTIVE_TEST_T catp;
     memset(&catp, 0, sizeof(catp));
-    cmpp_head((CMPP_HEAD_T *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp->sequence());
+    cmpp_add_header((CMPP_HEAD_T *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp->sequence());
 
-    pthread_mutex_lock(&cmpp->lock);
-    
     if (!cmpp_send(cmpp, &catp, sizeof(catp))) {
         cmpp->err = "Cmpp send cmpp_active_test packet failed";
         return CMPP_ERR_ACTSCPE;
@@ -197,7 +185,6 @@ int cmpp_active_test(CMPP_T *cmpp) {
     CMPP_PACK_T pack;
 
     cmpp_recv(cmpp, &pack, sizeof(pack));
-    pthread_mutex_unlock(&cmpp->lock);
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_ACTIVE_TEST_RESP)) {
         cmpp->err = "Cmpp server response packet error";
@@ -207,17 +194,15 @@ int cmpp_active_test(CMPP_T *cmpp) {
     return 0;
 }
 
-int cmpp_terminate(CMPP_T *cmpp) {
+int cmpp_terminate(CMPP_SP_T *cmpp) {
     if (!cmpp) {
         return -1;
     }
 
     CMPP_TERMINATE_T ctp;
     memset(&ctp, 0, sizeof(ctp));
-    cmpp_head((CMPP_HEAD_T *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp->sequence());
+    cmpp_add_header((CMPP_HEAD_T *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp->sequence());
 
-    pthread_mutex_lock(&cmpp->lock);
-    
     if (!cmpp_send(cmpp, &ctp, sizeof(ctp))) {
         cmpp->err = "Cmpp send cmpp_terminate packet failed";
         return CMPP_ERR_TERSTPE;
@@ -226,7 +211,7 @@ int cmpp_terminate(CMPP_T *cmpp) {
     CMPP_PACK_T pack;
 
     cmpp_recv(cmpp, &pack, sizeof(pack));    
-    pthread_mutex_unlock(&cmpp->lock);
+
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_TERMINATE_RESP)) {
         cmpp->err = "Cmpp server response packet error";
         return CMPP_ERR_TERSRPE;
@@ -236,8 +221,8 @@ int cmpp_terminate(CMPP_T *cmpp) {
     return 0;
 }
 
-int cmpp_submit(CMPP_T *cmpp, const char *phone, const char *message,
-                bool delivery, char *serviceId, char *msgFmt, char *msgSrc, char *srcId) {
+int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool delivery,
+                char *serviceId, char *msgFmt, char *msgSrc) {
 
     if (!cmpp) {
         return -1;
@@ -248,7 +233,7 @@ int cmpp_submit(CMPP_T *cmpp, const char *phone, const char *message,
     size_t offset, msgLen;
     
     memset(&csp, 0, sizeof(csp));
-    cmpp_head((CMPP_HEAD_T *)&csp, sizeof(csp), CMPP_SUBMIT, cmpp->sequence());
+    cmpp_add_header((CMPP_HEAD_T *)&csp, sizeof(csp), CMPP_SUBMIT, cmpp->sequence());
 
     offset = sizeof(CMPP_HEAD_T);
     
@@ -311,7 +296,7 @@ int cmpp_submit(CMPP_T *cmpp, const char *phone, const char *message,
     cmpp_pack_add_string(&csp, "0", 1, &offset, 17);
     
     /* Src_Id */
-    cmpp_pack_add_string(&csp, srcId, strlen(srcId), &offset, 21);
+    cmpp_pack_add_string(&csp, serviceId, strlen(serviceId), &offset, 21);
     
     /* DestUsr_Tl */
     cmpp_pack_add_integer(&csp, 1, &offset, 1);
@@ -335,7 +320,6 @@ int cmpp_submit(CMPP_T *cmpp, const char *phone, const char *message,
     /* Total_Length */
     csp.totalLength = htonl(offset);
 
-    pthread_mutex_lock(&cmpp->lock);
     if (!cmpp_send(cmpp, &csp, sizeof(csp))) {
         cmpp->err = "Cmpp socket send packet failed";
         return CMPP_ERR_SUBSSPE;
@@ -345,7 +329,6 @@ int cmpp_submit(CMPP_T *cmpp, const char *phone, const char *message,
     CMPP_SUBMIT_RESP_T *csrp;
 
     cmpp_recv(cmpp, &pack, sizeof(pack));    
-    pthread_mutex_unlock(&cmpp->lock);
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_SUBMIT_RESP)) {
         cmpp->err = "Cmpp server response packet error";
