@@ -204,7 +204,7 @@ int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long millisecond) {
     return 0;
 }
 
-static int cmpp_check_timeout(int fd, long long millisecond) {
+int cmpp_check_timeout(int fd, long long millisecond) {
     int ret;
     fd_set rset;
     struct timeval timeout;

@@ -49,7 +49,7 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
     /* Connect to server */
     err = cmpp_sock_connect(&cmpp->sock, host, port);
     if (err) {
-        cmpp->err = "Can't connect to server";
+        cmpp->err = "Can't connect to remote server";
         return CMPP_ERR_INITCCTS;
     }
 
@@ -136,7 +136,7 @@ int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
     cmpp_recv(cmpp, &pack, sizeof(pack));
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_CONNECT_RESP)) {
-        cmpp->err = "Cmpp server response packet error";
+        cmpp->err = "Cmpp receive cmpp_connect_resp packet error";
         return CMPP_ERR_CONSRPE;
     }
 
@@ -187,7 +187,7 @@ int cmpp_active_test(CMPP_SP_T *cmpp) {
     cmpp_recv(cmpp, &pack, sizeof(pack));
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_ACTIVE_TEST_RESP)) {
-        cmpp->err = "Cmpp server response packet error";
+        cmpp->err = "Cmpp receive cmpp_active_test_resp packet error";
         return CMPP_ERR_ACTSRPE;
     }
 
@@ -213,7 +213,7 @@ int cmpp_terminate(CMPP_SP_T *cmpp) {
     cmpp_recv(cmpp, &pack, sizeof(pack));    
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_TERMINATE_RESP)) {
-        cmpp->err = "Cmpp server response packet error";
+        cmpp->err = "Cmpp receive cmpp_terminate_resp packet error";
         return CMPP_ERR_TERSRPE;
     }
     
@@ -321,7 +321,7 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
     csp.totalLength = htonl(offset);
 
     if (!cmpp_send(cmpp, &csp, sizeof(csp))) {
-        cmpp->err = "Cmpp socket send packet failed";
+        cmpp->err = "Cmpp send cmpp_submit packet failed";
         return CMPP_ERR_SUBSSPE;
     }
 
@@ -331,7 +331,7 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
     cmpp_recv(cmpp, &pack, sizeof(pack));    
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_SUBMIT_RESP)) {
-        cmpp->err = "Cmpp server response packet error";
+        cmpp->err = "Cmpp receive cmpp_submit_resp packet error";
         return CMPP_ERR_SUBSRPE;
     }
 
@@ -383,6 +383,23 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
             cmpp->err = "Unknown error";
             return CMPP_ERR_SUBUNE;
         }
+    }
+
+    return 0;
+}
+
+int cmpp_deliver_resp(CMPP_SP_T *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
+    CMPP_DELIVER_RESP_T cdrp;
+
+    memset(&cdrp, 0, sizeof(cdrp));
+    cmpp_add_header((CMPP_HEAD_T *)&cdrp, sizeof(cdrp), CMPP_DELIVER_RESP, sequenceId);
+
+    cdrp.msgId = msgId;
+    cdrp.result = result;
+
+    if (!cmpp_send(cmpp, &csp, sizeof(csp))) {
+        cmpp->err = "Cmpp send cmpp_deliver_resp packet failed";
+        return -1;
     }
 
     return 0;

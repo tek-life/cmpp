@@ -40,8 +40,8 @@
 #define CMPP_MT_ROUTE_RESP             0x80000010
 #define CMPP_MO_ROUTE                  0x00000011
 #define CMPP_MO_ROUTE_RESP             0x80000011
-#define CMPP_GET_MT_ROUTE              0x00000012
-#define CMPP_GET_MT_ROUTE_RESP         0x80000012
+#define CMPP_GET_ROUTE                 0x00000012
+#define CMPP_GET_ROUTE_RESP            0x80000012
 #define CMPP_MT_ROUTE_UPDATE           0x00000013
 #define CMPP_MT_ROUTE_UPDATE_RESP      0x80000013
 #define CMPP_MO_ROUTE_UPDATE           0x00000014
@@ -50,8 +50,6 @@
 #define CMPP_PUSH_MT_ROUTE_UPDATE_RESP 0x80000015
 #define CMPP_PUSH_MO_ROUTE_UPDATE      0x00000016
 #define CMPP_PUSH_MO_ROUTE_UPDATE_RESP 0x80000016
-#define CMPP_GET_MO_ROUTE              0x00000017
-#define CMPP_GET_MO_ROUTE_RESP         0x80000017
 
 /* Error code definition */
 #define CMPP_ERR_INITCCS               0xe0000001
@@ -139,7 +137,6 @@ extern int cmpp_deliver(CMPP_SP_T *cmpp);
 extern int cmpp_deliver_resp(CMPP_SP_T *cmpp);
 extern int cmpp_active_test(CMPP_SP_T *cmpp);
 extern int cmpp_active_test_resp(CMPP_SP_T *cmpp);
-extern int cmpp_event_loop(CMPP_SP_T *cmpp);
 extern int cmpp_close(CMPP_SP_T *cmpp);
 extern unsigned int gen_sequence(void);
 extern bool cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len);

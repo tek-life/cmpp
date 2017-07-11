@@ -88,8 +88,8 @@ typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-    unsigned long msgId;
-    unsigned int result;
+    unsigned long long msgId;
+    unsigned char result;
 } __attribute__((packed)) CMPP_DELIVER_RESP_T;
 
 /* CMPP_ACTIVE_TEST Message Packet (SP <=> ISMG) */

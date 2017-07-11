@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     CMPP_SP_T cmpp;
 
     /* Cmpp Socket Initialization */
-    err = cmpp_init_sp(&cmpp, "139.196.92.52", 7890);
+    err = cmpp_init_sp(&cmpp, "192.168.1.100", 7890);
     if (err && cmpp.err) {
         printf("[error] %s\n", cmpp.err);
         return 0;
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
     printf("connect to server successfull\n");
 
     /* Cmpp Login */
-    cmpp_connect(&cmpp, "szbty6", "szbty6123");
+    cmpp_connect(&cmpp, "901234", "123456");
     if (!cmpp.ok) {
         printf("[error] %s\n", cmpp.err);
         return 0;
@@ -43,13 +43,13 @@ int main(int argc, char *argv[]) {
     bool delivery = false;
 
     /* Service Code */
-    char *serviceId = "7434000068";
+    char *serviceId = "1065860008";
 
     /* Message Character Encoding */
     char *msgFmt = "UCS-2";
 
     /* Enterprise Number */
-    char *msgSrc = "730068";
+    char *msgSrc = "725668";
 
     /* Cmpp Send Message */
     err = cmpp_submit(&cmpp, phone, message, delivery, serviceId, msgFmt, msgSrc);
