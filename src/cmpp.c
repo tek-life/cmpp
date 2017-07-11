@@ -54,7 +54,7 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
     }
 
     /* TCP NONBLOCK */
-    //cmpp_sock_nonblock(&cmpp->sock, true);
+    cmpp_sock_nonblock(&cmpp->sock, true);
 
     /* TCP NODELAY */
     cmpp_sock_tcpnodelay(&cmpp->sock, true);

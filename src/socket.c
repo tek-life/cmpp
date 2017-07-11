@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -100,16 +101,12 @@ int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     /* Start sending data */
     while (offset < len) {
         ret = write(sock->fd, buff + offset, len - offset);
-        if (ret < 1) {
-            return -1;
-        } else {
+        if (ret > 0) {
             offset += ret;
-            if (offset != len) {
-                continue;
-            } else {
-                break;
-            }
+            continue;
         }
+
+        break;
     }
 
     pthread_mutex_unlock(&sock->wlock);
@@ -118,33 +115,22 @@ int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
 }
 
 int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
-    int ret = 0;
+    int ret;
     int offset = 0;
 
     pthread_mutex_lock(&sock->rlock);
-    
-    /* Setting socket receive timeout */
-    cmpp_sock_timeout(sock, CMPP_SOCK_RECV, sock->conTimeout);
-
 
     /* Begin to receive data */
     while (offset < len) {
-        ret = read(sock->fd, buff + offset, len - offset);
-        if (ret > 0) {
+        if (cmpp_check_timeout(sock->fd, sock->recvTimeout) > 0) {
+          ret = read(sock->fd, buff + offset, len - offset);
+          if (ret > 0) {
             offset += ret;
-        } else if (ret == -1) {
-            if (errno == ECONNRESET) {
-                return -1;
-            }
-            
-            if (errno != EAGAIN && errno != EWOULDBLOCK) {
-                return -1;
-            }
-
             continue;
-        } else if (ret == 0) {
-            break;
+          }
         }
+
+        break;
     }
 
     pthread_mutex_unlock(&sock->rlock);
@@ -204,11 +190,11 @@ int cmpp_sock_keepavlie(CMPP_SOCK_T *sock, int idle, int interval, int count) {
     return 0;
 }
 
-int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long value) {
+int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long millisecond) {
     struct timeval timeout;
 
-    timeout.tv_sec = value / 1000;
-    timeout.tv_usec = (value % 1000) * 1000;
+    timeout.tv_sec = millisecond / 1000;
+    timeout.tv_usec = (millisecond % 1000) * 1000;
     type = (type == CMPP_SOCK_SEND) ? SO_SNDTIMEO : SO_RCVTIMEO;
 
     if (setsockopt(sock->fd, SOL_SOCKET, type, (void *)&timeout, sizeof(timeout)) == -1) {
@@ -216,4 +202,19 @@ int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long value) {
     }
 
     return 0;
+}
+
+static int cmpp_check_timeout(int fd, long long millisecond) {
+    int ret;
+    fd_set rset;
+    struct timeval timeout;
+
+    timeout.tv_sec = millisecond / 1000;
+    timeout.tv_usec = (millisecond % 1000) * 1000;
+
+    FD_ZERO(&rset);
+    FD_SET(fd, &rset);
+    ret = select(fd + 1, &rset, NULL, NULL, &timeout);
+
+    return ret;
 }

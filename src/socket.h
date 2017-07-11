@@ -24,6 +24,7 @@ int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len);
 int cmpp_sock_nonblock(CMPP_SOCK_T *sock, bool enable);
 int cmpp_sock_tcpnodelay(CMPP_SOCK_T *sock, bool enable);
 int cmpp_sock_keepavlie(CMPP_SOCK_T *sock, int idle, int interval, int count);
-int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long value);
+int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long millisecond);
+static int cmpp_check_timeout(int fd, long long millisecond);
 int cmpp_sock_close(CMPP_SOCK_T *sock);
 #endif

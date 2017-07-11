@@ -102,9 +102,9 @@ typedef struct {
 
 typedef struct {
     int fd;
-    int conTimeout;
-    int sendTimeout;
-    int recvTimeout;
+    long long conTimeout;
+    long long sendTimeout;
+    long long recvTimeout;
     pthread_mutex_t rlock;
     pthread_mutex_t wlock;
 } CMPP_SOCK_T;
