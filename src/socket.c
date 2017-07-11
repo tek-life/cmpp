@@ -132,9 +132,19 @@ int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
         ret = read(sock->fd, buff + offset, len - offset);
         if (ret > 0) {
             offset += ret;
+        } else if (ret == -1) {
+            if (errno == ECONNRESET) {
+                return -1;
+            }
+            
+            if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                return -1;
+            }
+
             continue;
+        } else if (ret == 0) {
+            break;
         }
-        break;
     }
 
     pthread_mutex_unlock(&sock->rlock);
