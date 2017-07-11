@@ -137,7 +137,7 @@ int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
         break;
     }
 
-    pthread_mutex_unlock(&sock->wlock);
+    pthread_mutex_unlock(&sock->rlock);
 
     return offset;
 }
