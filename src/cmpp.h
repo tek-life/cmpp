@@ -19,6 +19,11 @@
 #define CMPP_LONG_PORT  7890
 #define CMPP_SHORT_PORT 7900
 
+/* Cmpp Socket Option */
+#define CMPP_SOCK_CONTIMEOUT  1
+#define CMPP_SOCK_SENDTIMEOUT 2
+#define CMPP_SOCK_RECVTIMEOUT 3
+
 /* Cmpp Protocol Command ID */
 #define CMPP_CONNECT                   0x00000001
 #define CMPP_CONNECT_RESP              0x80000001
@@ -134,7 +139,7 @@ extern int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, 
                        char *serviceId, char *msgFmt, char *msgSrc);
 extern int cmpp_submit_resp(CMPP_SP_T *cmpp);
 extern int cmpp_deliver(CMPP_SP_T *cmpp);
-extern int cmpp_deliver_resp(CMPP_SP_T *cmpp);
+extern int cmpp_deliver_resp(CMPP_SP_T *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
 extern int cmpp_active_test(CMPP_SP_T *cmpp);
 extern int cmpp_active_test_resp(CMPP_SP_T *cmpp);
 extern int cmpp_close(CMPP_SP_T *cmpp);
@@ -144,6 +149,7 @@ extern bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len);
 extern int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool delivery,
                        char *serviceId, char *msgFmt, char *msgSrc);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
+extern int cmpp_sock_setting(CMPP_SOCK_T *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
 

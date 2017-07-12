@@ -37,7 +37,6 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
 
     /* Initialize the socket settings */
     cmpp_sock_init(&cmpp->sock);
-    cmpp_sock_setting(&cmpp->sock, 3000, 3000, 3000);
 
     /* Create a new socket */
     cmpp->sock.fd = cmpp_sock_create();
@@ -64,6 +63,7 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
 
     /* Sequence Number Generator */
     cmpp->sequence = gen_sequence;
+
     return 0;
 }
 
@@ -397,7 +397,7 @@ int cmpp_deliver_resp(CMPP_SP_T *cmpp, unsigned long sequenceId, unsigned long l
     cdrp.msgId = msgId;
     cdrp.result = result;
 
-    if (!cmpp_send(cmpp, &csp, sizeof(csp))) {
+    if (!cmpp_send(cmpp, &cdrp, sizeof(cdrp))) {
         cmpp->err = "Cmpp send cmpp_deliver_resp packet failed";
         return -1;
     }

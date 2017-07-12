@@ -15,7 +15,7 @@
 #define CMPP_SOCK_RECV 2
 
 int cmpp_sock_init(CMPP_SOCK_T *sock);
-int cmpp_sock_setting(CMPP_SOCK_T *sock, int conTimeout, int sendTimeout, int recvTimeout);
+int cmpp_sock_setting(CMPP_SOCK_T *sock, int opt, long long val);
 int cmpp_sock_create(void);
 int cmpp_sock_bind(CMPP_SOCK_T *sock, const char *addr, unsigned short port, int backlog);
 int cmpp_sock_connect(CMPP_SOCK_T *sock, const char *addr, unsigned short port);

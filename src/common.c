@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 #include <arpa/inet.h>
 #include <openssl/md5.h>
 #include <iconv.h>
@@ -44,9 +45,8 @@ bool cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
 
 bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     int ret;
-    int chpLen = 0;
-    int pckLen = 0;
     CMPP_HEAD_T *chp;
+    int chpLen, pckLen;
 
     chpLen = sizeof(CMPP_HEAD_T);
 
@@ -57,6 +57,13 @@ bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
+        if (ret == 0) {
+            cmpp->err = "No data received for the moment";
+        } else if (ret > 0) {
+            cmpp->err = "Incorrect cmpp protocol packet header";
+        } else {
+            cmpp->err = "Cmpp cmpp_sock_recv reading socket error";
+        }
         return false;
     }
 
@@ -65,6 +72,7 @@ bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
+        cmpp->err = "Incorrect cmpp protocol packet body";
         return false;
     }
     
@@ -163,14 +171,13 @@ size_t cmpp_ucs2count(const char *src) {
     return i;
 }
 
-/*
-void cmpp_sleep(int milliseconds) {
-    struct timespec ts;
+void cmpp_sleep(unsigned long long milliseconds) {
+    struct timeval timeout;
 
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = milliseconds % 1000 * 1000000;
-    nanosleep(&ts, NULL);
+    timeout.tv_sec = milliseconds / 1000;
+    timeout.tv_usec = (milliseconds % 1000) * 1000000;
+    select(0, NULL, NULL, NULL, &timeout);
+
     return;
 }
 
-*/

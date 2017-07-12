@@ -24,6 +24,9 @@
 #include "common.h"
 
 int cmpp_sock_init(CMPP_SOCK_T *sock) {
+    sock->conTimeout = 3000;
+    sock->sendTimeout = 50;
+    sock->recvTimeout = 50;
     pthread_mutex_init(&sock->rlock, NULL);
     pthread_mutex_init(&sock->wlock, NULL);
     return 0;
@@ -40,10 +43,18 @@ int cmpp_sock_create(void) {
     return fd;
 }
 
-int cmpp_sock_setting(CMPP_SOCK_T *sock, int conTimeout, int sendTimeout, int recvTimeout) {
-    sock->conTimeout = conTimeout;
-    sock->sendTimeout = sendTimeout;
-    sock->recvTimeout = recvTimeout;
+int cmpp_sock_setting(CMPP_SOCK_T *sock, int opt, long long val) {
+    switch (opt) {
+    case  CMPP_SOCK_CONTIMEOUT:
+        sock->conTimeout = val;
+        break;
+    case CMPP_SOCK_SENDTIMEOUT:
+        sock->sendTimeout = val;
+        break;
+    case CMPP_SOCK_RECVTIMEOUT:
+        sock->recvTimeout = val;
+        break;
+    }
 
     return 0;
 }

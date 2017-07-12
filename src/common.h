@@ -21,6 +21,6 @@ int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
 int cmpp_event_loop(CMPP_SP_T *cmpp);
 size_t cmpp_ucs2count(const char *src);
-/* void cmpp_sleep(int milliseconds); */
+void cmpp_sleep(unsigned long long milliseconds);
 
 #endif

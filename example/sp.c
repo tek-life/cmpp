@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     char *msgFmt = "UCS-2";
 
     /* Enterprise Number */
-    char *msgSrc = "725668";
+    char *msgSrc = "901234";
 
     /* Cmpp Send Message */
     err = cmpp_submit(&cmpp, phone, message, delivery, serviceId, msgFmt, msgSrc);
