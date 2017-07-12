@@ -63,23 +63,22 @@ typedef struct {
     unsigned char result;
 } __attribute__((packed)) CMPP_SUBMIT_RESP_T;
 
-/* CMPP_DELIVER Message Packet (SP -> ISMG) */
+/* CMPP_DELIVER Message Packet (ISMG -> SP) */
 typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-    unsigned long msgId;
+    unsigned long long msgId;
     unsigned char destId[21];
     unsigned char serviceId[10];
     unsigned char tppId;
     unsigned char tpUdhi;
     unsigned char msgFmt;
-    unsigned char srcTerminalId[32];
-    unsigned char srcTerminalType;
+    unsigned char srcTerminalId[21];
     unsigned char registeredDelivery;
     unsigned char msgLength;
-    unsigned char msgContent[160];
-    unsigned char linkId[20];
+    unsigned char msgContent[140];
+    unsigned char linkId[8];
 } __attribute__((packed)) CMPP_DELIVER_T;
 
 
