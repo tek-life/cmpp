@@ -108,5 +108,7 @@ typedef struct {
 
 void cmpp_pack_add_string(void *pack, const char *data, size_t len, size_t *offset, size_t size);
 void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size);
+void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len);
+void cmpp_pack_get_integer(void *pack, size_t offset, void **val, size_t len);
 
 #endif
