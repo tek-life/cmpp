@@ -31,7 +31,7 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
 
     int err;
     cmpp->ok = false;
-    cmpp->err = NULL;
+    cmpp->err = 0;
     cmpp->version = CMPP_VERSION;
     pthread_mutex_init(&cmpp->lock, NULL);
 
@@ -41,15 +41,15 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
     /* Create a new socket */
     cmpp->sock.fd = cmpp_sock_create();
     if (cmpp->sock.fd < 1) {
-        cmpp->err = "Can't create socket";
-        return CMPP_ERR_INITCCS;
+        cmpp->err = CMPP_ERR_INITCCS;
+        return -1;
     }
 
     /* Connect to server */
     err = cmpp_sock_connect(&cmpp->sock, host, port);
     if (err) {
-        cmpp->err = "Can't connect to remote server";
-        return CMPP_ERR_INITCCTS;
+        cmpp->err = CMPP_ERR_INITCCTS;
+        return -1;
     }
 
     /* TCP NONBLOCK */
@@ -70,7 +70,7 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
 int cmpp_close(CMPP_SP_T *cmpp) {
     if (cmpp) {
         cmpp->ok = false;
-        cmpp->err = NULL;
+        cmpp->err = 0;
         cmpp_sock_close(&cmpp->sock);
         return 0;
     }
@@ -110,8 +110,8 @@ int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
 
     len = strlen(user) + 9 + strlen(password) + strlen(timestamp);
     if (len > sizeof(buff)) {
-        cmpp->err = "Cmpp user or password maximum length exceeded";
-        return CMPP_ERR_CONUPTL;
+        cmpp->err = CMPP_ERR_CONUPTL;
+        return -1;
     }
     
     memset(buff, 0, sizeof(buff));
@@ -123,9 +123,9 @@ int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
     /* Send Cmpp_Connect packet */
     len = sizeof(ccp);
 
-    if (!cmpp_send(cmpp, &ccp, sizeof(ccp))) {
-        cmpp->err = "Cmpp send cmpp_connect packet failed";
-        return CMPP_ERR_CONSCPE;
+    if (cmpp_send(cmpp, &ccp, sizeof(ccp)) != 0) {
+        cmpp->err = CMPP_ERR_CONSCPE;
+        return -1;
     }
     
     /* Confirm response status */
@@ -136,36 +136,19 @@ int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
     cmpp_recv(cmpp, &pack, sizeof(pack));
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_CONNECT_RESP)) {
-        cmpp->err = "Cmpp receive cmpp_connect_resp packet error";
-        return CMPP_ERR_CONSRPE;
+        cmpp->err = CMPP_ERR_CONSRPE;
+        return -1;
     }
 
     ccrp = (CMPP_CONNECT_RESP_T *)&pack;
     /* status = ntohl(ccrp->status); */
     status = ccrp->status;
 
-    if (status != 0) {
-        switch (status) {
-        case 1:
-            cmpp->err = "Protocol packet error";
-            return CMPP_ERR_CONPPE;
-        case 2:
-            cmpp->err = "Illegal source address";
-            return CMPP_ERR_CONISA;
-        case 3:
-            cmpp->err = "Authentication failed";
-            return CMPP_ERR_CONAF;
-        case 4:
-            cmpp->err = "Version is too high";
-            return CMPP_ERR_CONVITH;
-        default:
-            cmpp->err = "Unknown error";
-            return CMPP_ERR_CONUNE;
-        }
+    if (status == 0) {
+        cmpp->ok = true;
     }
-
-    cmpp->ok = true;
-    return 0;
+    
+    return status;
 }
 
 int cmpp_active_test(CMPP_SP_T *cmpp) {
@@ -177,9 +160,9 @@ int cmpp_active_test(CMPP_SP_T *cmpp) {
     memset(&catp, 0, sizeof(catp));
     cmpp_add_header((CMPP_HEAD_T *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp->sequence());
 
-    if (!cmpp_send(cmpp, &catp, sizeof(catp))) {
-        cmpp->err = "Cmpp send cmpp_active_test packet failed";
-        return CMPP_ERR_ACTSCPE;
+    if (cmpp_send(cmpp, &catp, sizeof(catp)) != 0) {
+        cmpp->err = CMPP_ERR_ACTSCPE;
+        return -1;
     }
 
     CMPP_PACK_T pack;
@@ -187,8 +170,8 @@ int cmpp_active_test(CMPP_SP_T *cmpp) {
     cmpp_recv(cmpp, &pack, sizeof(pack));
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_ACTIVE_TEST_RESP)) {
-        cmpp->err = "Cmpp receive cmpp_active_test_resp packet error";
-        return CMPP_ERR_ACTSRPE;
+        cmpp->err = CMPP_ERR_ACTSRPE;
+        return -1;
     }
 
     return 0;
@@ -203,9 +186,9 @@ int cmpp_terminate(CMPP_SP_T *cmpp) {
     memset(&ctp, 0, sizeof(ctp));
     cmpp_add_header((CMPP_HEAD_T *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp->sequence());
 
-    if (!cmpp_send(cmpp, &ctp, sizeof(ctp))) {
-        cmpp->err = "Cmpp send cmpp_terminate packet failed";
-        return CMPP_ERR_TERSTPE;
+    if (cmpp_send(cmpp, &ctp, sizeof(ctp)) != 0) {
+        cmpp->err = CMPP_ERR_TERSTPE;
+        return -1;
     }
 
     CMPP_PACK_T pack;
@@ -213,8 +196,8 @@ int cmpp_terminate(CMPP_SP_T *cmpp) {
     cmpp_recv(cmpp, &pack, sizeof(pack));    
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_TERMINATE_RESP)) {
-        cmpp->err = "Cmpp receive cmpp_terminate_resp packet error";
-        return CMPP_ERR_TERSRPE;
+        cmpp->err = CMPP_ERR_TERSRPE;
+        return -1;
     }
     
     cmpp->ok = false;
@@ -320,9 +303,9 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
     /* Total_Length */
     csp.totalLength = htonl(offset);
 
-    if (!cmpp_send(cmpp, &csp, sizeof(csp))) {
-        cmpp->err = "Cmpp send cmpp_submit packet failed";
-        return CMPP_ERR_SUBSSPE;
+    if (cmpp_send(cmpp, &csp, sizeof(csp)) != 0) {
+        cmpp->err = CMPP_ERR_SUBSSPE;
+        return -1;
     }
 
     CMPP_PACK_T pack;
@@ -331,61 +314,14 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
     cmpp_recv(cmpp, &pack, sizeof(pack));    
 
     if (!is_cmpp_command(&pack, sizeof(pack), CMPP_SUBMIT_RESP)) {
-        cmpp->err = "Cmpp receive cmpp_submit_resp packet error";
-        return CMPP_ERR_SUBSRPE;
+        cmpp->err = CMPP_ERR_SUBSRPE;
+        return -1;
     }
 
     csrp = (CMPP_SUBMIT_RESP_T *)&pack;
     //int result = ntohs(csrp->result);
     
-    if (csrp->result != 0) {
-        switch (csrp->result) {
-        case 1:
-            cmpp->err = "Protocol packet error";
-            return CMPP_ERR_SUBPPE;
-        case 2:
-            cmpp->err = "Protocol command error";
-            return CMPP_ERR_SUBPCE;
-        case 3:
-            cmpp->err = "Message sequence number repeat";
-            return CMPP_ERR_SUBMSNR;
-        case 4:
-            cmpp->err = "Message length error";
-            return CMPP_ERR_SUBMLE;
-        case 5:
-            cmpp->err = "Tariff code error";
-            return CMPP_ERR_SUBTCE;
-        case 6:
-            cmpp->err = "Message too long";
-            return CMPP_ERR_SUBMTL;
-        case 7:
-            cmpp->err = "Service code error";
-            return CMPP_ERR_SUBSCE;
-        case 8:
-            cmpp->err = "Bandwidth control error";
-            return CMPP_ERR_SUBBCE;
-        case 9:
-            cmpp->err = "Gateway does not serve this billing number";
-            return CMPP_ERR_SUBGDNSTBN;
-        case 10:
-            cmpp->err = "Incorrect Src_Id";
-            return CMPP_ERR_SUBISRCID;
-        case 11:
-            cmpp->err = "Incorrect Msg_Src";
-            return CMPP_ERR_SUBIMSGSRC;
-        case 12:
-            cmpp->err = "Incorrect Fee_Terminal_Id";
-            return CMPP_ERR_SUBIFTID;
-        case 13:
-            cmpp->err = "Incorrect Dest_terminal_Id";
-            return CMPP_ERR_SUBIDTID;
-        default:
-            cmpp->err = "Unknown error";
-            return CMPP_ERR_SUBUNE;
-        }
-    }
-
-    return 0;
+    return csrp->result;
 }
 
 int cmpp_deliver_resp(CMPP_SP_T *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
@@ -397,8 +333,8 @@ int cmpp_deliver_resp(CMPP_SP_T *cmpp, unsigned long sequenceId, unsigned long l
     cdrp.msgId = msgId;
     cdrp.result = result;
 
-    if (!cmpp_send(cmpp, &cdrp, sizeof(cdrp))) {
-        cmpp->err = "Cmpp send cmpp_deliver_resp packet failed";
+    if (cmpp_send(cmpp, &cdrp, sizeof(cdrp)) != 0) {
+        cmpp->err = CMPP_ERR_DELSPFE;
         return -1;
     }
 

@@ -24,26 +24,26 @@ unsigned int gen_sequence(void) {
     return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
 }
 
-bool cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
+int cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
     int ret = 0;
     CMPP_HEAD_T *chp;
 
     chp = (CMPP_HEAD_T *)pack;
 
     if (ntohl(chp->totalLength) > len) {
-    	return false;
+    	return -1;
     }
 
     ret = cmpp_sock_send(&cmpp->sock, (unsigned char *)pack, ntohl(chp->totalLength));
 
     if (ret != ntohl(chp->totalLength)) {
-        return false;
+        return -1;
     }
 
-    return true;
+    return 0;
 }
 
-bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
+int cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     int ret;
     CMPP_HEAD_T *chp;
     int chpLen, pckLen;
@@ -51,20 +51,13 @@ bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     chpLen = sizeof(CMPP_HEAD_T);
 
     if (len < chpLen) {
-    	return false;
+    	return -1;
     }
 
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
-        if (ret == 0) {
-            cmpp->err = "No data received for the moment";
-        } else if (ret > 0) {
-            cmpp->err = "Incorrect cmpp protocol packet header";
-        } else {
-            cmpp->err = "Cmpp cmpp_sock_recv reading socket error";
-        }
-        return false;
+        return -1;
     }
 
     chp = (CMPP_HEAD_T *)pack;
@@ -72,11 +65,10 @@ bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
-        cmpp->err = "Incorrect cmpp protocol packet body";
-        return false;
+        return -1;
     }
     
-    return true;
+    return 0;
 }
 
 int cmpp_add_header(CMPP_HEAD_T *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
@@ -130,33 +122,6 @@ int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* 
     return -1;
 }
 
-int cmpp_event_loop(CMPP_SP_T *cmpp) {
-    int client;
-    socklen_t socklen;
-    struct sockaddr_in sockaddr;
-
-    socklen = sizeof(sockaddr);
-
-    while (true) {
-        client = accept(cmpp->sock.fd, (struct sockaddr *)&sockaddr, &socklen);
-        if (client < 0) {
-          if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            sleep(3);
-            continue;
-          } else {
-            printf("cmpp accept socket error!\n");
-            break;
-          }
-        }
-
-        printf("new a client accept successfull\n");
-        sleep(1);
-        close(client);
-    }
-
-    return 0;
-}
-
 size_t cmpp_ucs2count(const char *src) {
     int i = 0;
 
@@ -181,3 +146,51 @@ void cmpp_sleep(unsigned long long milliseconds) {
     return;
 }
 
+char *cmpp_get_error(unsigned int code) {
+    char *error = NULL;
+    switch (code) {
+    case CMPP_ERR_INITCCS:
+        error = "can't create socket";
+        break;
+    case CMPP_ERR_INITCCTS:
+        error = "can't connect to remote server";
+        break;
+    case CMPP_ERR_INITCBSS:
+        break;
+    case CMPP_ERR_CONUPTL:
+        error = "user or password maximum length exceeded";
+        break;
+    case CMPP_ERR_CONSCPE:
+        error = "send cmpp_connect packet failed";
+        break;
+    case CMPP_ERR_CONSRPE:
+        error = "receive cmpp_connect_resp packet error";
+        break;
+    case CMPP_ERR_ACTSCPE:
+        error = "send cmpp_active_test packet failed";
+        break;
+    case CMPP_ERR_ACTSRPE:
+        error = "receive cmpp_active_test_resp packet error";
+        break;
+    case CMPP_ERR_TERSTPE:
+        error = "send cmpp_terminate packet failed";
+        break;
+    case CMPP_ERR_TERSRPE:
+        error = "receive cmpp_terminate_resp packet error";
+        break;
+    case CMPP_ERR_SUBSSPE:
+        error = "send cmpp_submit packet failed";
+        break;
+    case CMPP_ERR_SUBSRPE:
+        error = "receive cmpp_submit_resp packet error";
+        break;
+    case CMPP_ERR_DELSPFE:
+        error = "send cmpp_deliver_resp packet failed";
+        break;
+    default:
+        error = "unknown error";
+        break;
+    }
+
+    return error;
+}

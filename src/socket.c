@@ -45,7 +45,7 @@ int cmpp_sock_create(void) {
 
 int cmpp_sock_setting(CMPP_SOCK_T *sock, int opt, long long val) {
     switch (opt) {
-    case  CMPP_SOCK_CONTIMEOUT:
+    case CMPP_SOCK_CONTIMEOUT:
         sock->conTimeout = val;
         break;
     case CMPP_SOCK_SENDTIMEOUT:

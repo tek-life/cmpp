@@ -56,38 +56,20 @@
 #define CMPP_PUSH_MO_ROUTE_UPDATE      0x00000016
 #define CMPP_PUSH_MO_ROUTE_UPDATE_RESP 0x80000016
 
-/* Error code definition */
+/* Error Code Definition */
 #define CMPP_ERR_INITCCS               0xe0000001
 #define CMPP_ERR_INITCCTS              0xe0000002
 #define CMPP_ERR_INITCBSS              0xe0000003
 #define CMPP_ERR_CONUPTL               0xe0000004
 #define CMPP_ERR_CONSCPE               0xe0000005
 #define CMPP_ERR_CONSRPE               0xe0000006
-#define CMPP_ERR_CONPPE                0xe0000007
-#define CMPP_ERR_CONISA                0xe0000008
-#define CMPP_ERR_CONAF                 0xe0000009
-#define CMPP_ERR_CONVITH               0xe0000010
-#define CMPP_ERR_CONUNE                0xe0000011
-#define CMPP_ERR_ACTSCPE               0xe0000012
-#define CMPP_ERR_ACTSRPE               0xe0000013
-#define CMPP_ERR_TERSTPE               0xe0000014
-#define CMPP_ERR_TERSRPE               0xe0000015
-#define CMPP_ERR_SUBSSPE               0xe0000016
-#define CMPP_ERR_SUBSRPE               0xe0000017
-#define CMPP_ERR_SUBPPE                0xe0000018
-#define CMPP_ERR_SUBPCE                0xe0000019
-#define CMPP_ERR_SUBMSNR               0xe0000020
-#define CMPP_ERR_SUBMLE                0xe0000021
-#define CMPP_ERR_SUBTCE                0xe0000022
-#define CMPP_ERR_SUBMTL                0xe0000023
-#define CMPP_ERR_SUBSCE                0xe0000024
-#define CMPP_ERR_SUBBCE                0xe0000025
-#define CMPP_ERR_SUBGDNSTBN            0xe0000026
-#define CMPP_ERR_SUBISRCID             0xe0000027
-#define CMPP_ERR_SUBIMSGSRC            0xe0000028
-#define CMPP_ERR_SUBIFTID              0xe0000029
-#define CMPP_ERR_SUBIDTID              0xe0000030
-#define CMPP_ERR_SUBUNE                0xe0000031
+#define CMPP_ERR_ACTSCPE               0xe0000009
+#define CMPP_ERR_ACTSRPE               0xe0000010
+#define CMPP_ERR_TERSTPE               0xe0000011
+#define CMPP_ERR_TERSRPE               0xe0000012
+#define CMPP_ERR_SUBSSPE               0xe0000013
+#define CMPP_ERR_SUBSRPE               0xe0000014
+#define CMPP_ERR_DELSPFE               0xe0000015
 
 /* Cmpp Packet Message Header */
 typedef struct {
@@ -115,7 +97,7 @@ typedef struct {
 /* Cmpp Session Handle */
 typedef struct {
     bool ok;
-    char *err;
+    unsigned int err;
     CMPP_SOCK_T sock;
     pthread_mutex_t lock;
     unsigned char version;
@@ -144,13 +126,14 @@ extern int cmpp_active_test(CMPP_SP_T *cmpp);
 extern int cmpp_active_test_resp(CMPP_SP_T *cmpp);
 extern int cmpp_close(CMPP_SP_T *cmpp);
 extern unsigned int gen_sequence(void);
-extern bool cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len);
-extern bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len);
+extern int cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len);
+extern int cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len);
 extern int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool delivery,
                        char *serviceId, char *msgFmt, char *msgSrc);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 extern int cmpp_sock_setting(CMPP_SOCK_T *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
+extern char *cmpp_get_error(unsigned int code);
 
 #endif
