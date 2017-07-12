@@ -133,7 +133,7 @@ int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
 
     /* Begin to receive data */
     while (offset < len) {
-        if (cmpp_check_readable(sock->fd, sock->recvTimeout) > 0) {
+        if (cmpp_sock_readable(sock->fd, sock->recvTimeout) > 0) {
           ret = read(sock->fd, buff + offset, len - offset);
           if (ret > 0) {
             offset += ret;
@@ -213,7 +213,7 @@ int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long millisecond) {
     return 0;
 }
 
-int cmpp_check_readable(int fd, long long millisecond) {
+int cmpp_sock_readable(int fd, long long millisecond) {
     int ret;
     fd_set rset;
     struct timeval timeout;
