@@ -73,8 +73,10 @@ void cmpp_pack_get_integer(void *pack, size_t offset, void **val, size_t len) {
     switch (size) {
     case 1:
         *((unsigned char *)val) = (unsigned char)ptr;
+        break;
     case 2:
         *((unsigned short *)val) = (unsigned short)ptr;
+        break;
     case 4:
         *((unsigned int *)val) = (unsigned int)ptr;
         break;

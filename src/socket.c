@@ -104,7 +104,7 @@ int cmpp_sock_connect(CMPP_SOCK_T *sock, const char *addr, unsigned short port) 
 }
 
 int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
-    int ret = 0;
+    int ret;
     int offset = 0;
 
     pthread_mutex_lock(&sock->wlock);
@@ -133,7 +133,7 @@ int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
 
     /* Begin to receive data */
     while (offset < len) {
-        if (cmpp_check_timeout(sock->fd, sock->recvTimeout) > 0) {
+        if (cmpp_check_readable(sock->fd, sock->recvTimeout) > 0) {
           ret = read(sock->fd, buff + offset, len - offset);
           if (ret > 0) {
             offset += ret;
@@ -154,8 +154,7 @@ int cmpp_sock_close(CMPP_SOCK_T *sock) {
 }
 
 int cmpp_sock_nonblock(CMPP_SOCK_T *sock, bool enable) {
-    int ret;
-    int flag;
+    int ret, flag;
 
     flag = fcntl(sock->fd, F_GETFL, 0);
 
@@ -179,8 +178,7 @@ int cmpp_sock_nonblock(CMPP_SOCK_T *sock, bool enable) {
 }
 
 int cmpp_sock_tcpnodelay(CMPP_SOCK_T *sock, bool enable) {
-    int ret;
-    int flag;
+    int ret, flag;
 
     flag = enable ? 1 : 0;
     ret = setsockopt(sock->fd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
@@ -215,7 +213,7 @@ int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long millisecond) {
     return 0;
 }
 
-int cmpp_check_timeout(int fd, long long millisecond) {
+int cmpp_check_readable(int fd, long long millisecond) {
     int ret;
     fd_set rset;
     struct timeval timeout;
