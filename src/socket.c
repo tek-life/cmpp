@@ -227,3 +227,18 @@ int cmpp_sock_readable(int fd, long long millisecond) {
 
     return ret;
 }
+
+int cmpp_sock_writable(int fd, long long millisecond) {
+    int ret;
+    fd_set wset;
+    struct timeval timeout;
+
+    timeout.tv_sec = millisecond / 1000;
+    timeout.tv_usec = (millisecond % 1000) * 1000;
+
+    FD_ZERO(&wset);
+    FD_SET(fd, &wset);
+    ret = select(fd + 1, NULL, &wset, NULL, &timeout);
+
+    return ret;
+}
