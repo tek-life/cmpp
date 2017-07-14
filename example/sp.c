@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <arpa/inet.h>
-#include "cmpp.h"
+#include <cmpp2.h>
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
