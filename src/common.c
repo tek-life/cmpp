@@ -14,6 +14,7 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <openssl/md5.h>
+#include <leveldb/c.h>
 #include <iconv.h>
 #include "cmpp.h"
 #include "packet.h"
@@ -25,21 +26,21 @@ unsigned int gen_sequence(void) {
 }
 
 int cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
-    int ret = 0;
+    int ret;
     CMPP_HEAD_T *chp;
 
     chp = (CMPP_HEAD_T *)pack;
 
     if (ntohl(chp->totalLength) > len) {
-    	return -1;
+    	return CMPP_ERR_PROPACKLENERR;
     }
 
     ret = cmpp_sock_send(&cmpp->sock, (unsigned char *)pack, ntohl(chp->totalLength));
 
     if (ret != ntohl(chp->totalLength)) {
-        return -1;
+        return CMPP_ERR_PROPACKLENERR;
     }
-
+    
     return 0;
 }
 
@@ -51,13 +52,13 @@ int cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     chpLen = sizeof(CMPP_HEAD_T);
 
     if (len < chpLen) {
-    	return -1;
+    	return CMPP_ERR_PROPACKLENERR;
     }
 
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
-        return -1;
+        return CMPP_ERR_PROPACKLENERR;
     }
 
     chp = (CMPP_HEAD_T *)pack;
@@ -65,21 +66,22 @@ int cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
-        return -1;
+        return CMPP_ERR_PROPACKLENERR;
     }
     
     return 0;
 }
 
 int cmpp_add_header(CMPP_HEAD_T *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
-    if (chp) {
-        chp->totalLength = htonl(totalLength);
-        chp->commandId = htonl(commandId);
-        chp->sequenceId = htonl(sequenceId);
-        return 0;
+    if (!chp) {
+        return -1;
     }
 
-    return -1;
+    chp->totalLength = htonl(totalLength);
+    chp->commandId = htonl(commandId);
+    chp->sequenceId = htonl(sequenceId);
+
+    return 0;
 }
 
 bool is_cmpp_command(void *pack, size_t len, unsigned int command) {
@@ -136,16 +138,6 @@ size_t cmpp_ucs2count(const char *src) {
     return i;
 }
 
-void cmpp_sleep(unsigned long long milliseconds) {
-    struct timeval timeout;
-
-    timeout.tv_sec = milliseconds / 1000;
-    timeout.tv_usec = (milliseconds % 1000) * 1000000;
-    select(0, NULL, NULL, NULL, &timeout);
-
-    return;
-}
-
 char *cmpp_get_error(unsigned int code) {
     char *error = NULL;
     switch (code) {
@@ -186,6 +178,15 @@ char *cmpp_get_error(unsigned int code) {
         break;
     case CMPP_ERR_DELSPFE:
         error = "send cmpp_deliver_resp packet failed";
+        break;
+    case CMPP_ERR_DBWERR:
+        error = "writing leveldb database errors";
+        break;
+    case CMPP_ERR_PROPACKLENERR:
+        error = "protocol packet with incorrect length";
+        break;
+    case CMPP_ERR_LISTPUTERR:
+        error = "write list data error";
         break;
     default:
         error = "unknown error";

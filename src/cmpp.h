@@ -57,19 +57,26 @@
 #define CMPP_PUSH_MO_ROUTE_UPDATE_RESP 0x80000016
 
 /* Error Code Definition */
-#define CMPP_ERR_INITCCS               0xe0000001
-#define CMPP_ERR_INITCCTS              0xe0000002
-#define CMPP_ERR_INITCBSS              0xe0000003
-#define CMPP_ERR_CONUPTL               0xe0000004
-#define CMPP_ERR_CONSCPE               0xe0000005
-#define CMPP_ERR_CONSRPE               0xe0000006
-#define CMPP_ERR_ACTSCPE               0xe0000009
-#define CMPP_ERR_ACTSRPE               0xe0000010
-#define CMPP_ERR_TERSTPE               0xe0000011
-#define CMPP_ERR_TERSRPE               0xe0000012
-#define CMPP_ERR_SUBSSPE               0xe0000013
-#define CMPP_ERR_SUBSRPE               0xe0000014
-#define CMPP_ERR_DELSPFE               0xe0000015
+enum {
+    CMPP_STATUS_OK,
+    CMPP_ERR_INITCCS,
+    CMPP_ERR_INITCCTS,
+    CMPP_ERR_INITCBSS,
+    CMPP_ERR_CONUPTL,
+    CMPP_ERR_CONSCPE,
+    CMPP_ERR_CONSRPE,
+    CMPP_ERR_ACTSCPE,
+    CMPP_ERR_ACTSRPE,
+    CMPP_ERR_TERSTPE,
+    CMPP_ERR_TERSRPE,
+    CMPP_ERR_SUBSSPE,
+    CMPP_ERR_SUBSRPE,
+    CMPP_ERR_DELSPFE,
+    CMPP_ERR_SENMAXUNLEN,
+    CMPP_ERR_DBWERR,
+    CMPP_ERR_PROPACKLENERR,
+    CMPP_ERR_LISTPUTERR
+};
 
 /* CMPP_CONNECT */
 #define cmpp_connect_source_addr              12
@@ -127,7 +134,7 @@
 
 /* Cmpp Packet Message Header */
 typedef struct {
-	unsigned int totalLength;
+    unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
 } CMPP_HEAD_T;
