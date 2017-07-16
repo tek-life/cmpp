@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     }
     
     int err;
-    CMPP_SP_T cmpp;
+    cmpp_sp_t cmpp;
 
     signal(SIGPIPE, SIG_IGN);
     

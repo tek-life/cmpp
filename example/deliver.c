@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     }
     
     int err;
-    CMPP_SP_T cmpp;
+    cmpp_sp_t cmpp;
 
     signal(SIGPIPE, SIG_IGN);
     
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     printf("cmpp connect successfull\n");
     
     while (true) {
-        CMPP_PACK_T pack;
+        cmpp_pack_t pack;
         if (cmpp_recv(&cmpp, &pack, sizeof(pack)) != 0) {
             cmpp_sleep(1000);
             continue;
