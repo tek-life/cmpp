@@ -5,8 +5,8 @@
  * Update: 2017-05-18
  */
 
-#ifndef _CMPP2_PACKET_H
-#define _CMPP2_PACKET_H
+#ifndef _CMPP_PACKET_H
+#define _CMPP_PACKET_H
 
 #include "string.h"
 
@@ -19,7 +19,7 @@ typedef struct {
     unsigned char authenticatorSource[16];
     unsigned char version;
     unsigned int timestamp;
-} __attribute__((packed)) CMPP_CONNECT_T;
+} __attribute__((packed)) cmpp_connect_t;
 
 
 /* CMPP_CONNECT Message Packet (ISMG -> SP) */
@@ -30,21 +30,21 @@ typedef struct {
     unsigned char status;
     unsigned char authenticatorISMG[16];
     unsigned char version;
-} __attribute__((packed)) CMPP_CONNECT_RESP_T;
+} __attribute__((packed)) cmpp_connect_resp_t;
 
 /* CMPP_TERMINATE Message Packet (SP <=> ISMG) */
 typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-} __attribute__((packed)) CMPP_TERMINATE_T;
+} __attribute__((packed)) cmpp_terminate_t;
 
 /* CMPP_TERMINATE_RESP Message Packet (SP <=> ISMG) */
 typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-} __attribute__((packed)) CMPP_TERMINATE_RESP_T;
+} __attribute__((packed)) cmpp_terminate_resp_t;
 
 /* CMPP_DELIVER_RESP Message Packet (ISMG -> SP) */
 typedef struct {
@@ -53,14 +53,14 @@ typedef struct {
     unsigned int sequenceId;
     unsigned long long msgId;
     unsigned char result;
-} __attribute__((packed)) CMPP_DELIVER_RESP_T;
+} __attribute__((packed)) cmpp_deliver_resp_t;
 
 /* CMPP_ACTIVE_TEST Message Packet (SP <=> ISMG) */
 typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-} __attribute__((packed)) CMPP_ACTIVE_TEST_T;
+} __attribute__((packed)) cmpp_active_test_t;
 
 /* CMPP_ACTIVE_TEST_RESP Message Packet (SP <=> ISMG) */
 typedef struct {
@@ -68,7 +68,7 @@ typedef struct {
     unsigned int commandId;
     unsigned int sequenceId;
     unsigned char reserved;
-} __attribute__((packed)) CMPP_ACTIVE_TEST_RESP_T;
+} __attribute__((packed)) cmpp_active_test_resp_t;
 
 /* CMPP_CONNECT */
 #define cmpp_connect_source_addr              12

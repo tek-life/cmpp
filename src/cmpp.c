@@ -24,7 +24,7 @@
 #include "common.h"
 #include "socket.h"
 
-int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
+int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
     if (!cmpp) {
         return -1;
     }
@@ -67,7 +67,7 @@ int cmpp_init_sp(CMPP_SP_T *cmpp, char *host, unsigned short port) {
     return 0;
 }
 
-int cmpp_close(CMPP_SP_T *cmpp) {
+int cmpp_close(cmpp_sp_t *cmpp) {
     if (cmpp) {
         cmpp->ok = false;
         cmpp->err = 0;
@@ -78,16 +78,16 @@ int cmpp_close(CMPP_SP_T *cmpp) {
     return -1;
 }
 
-int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
+int cmpp_connect(cmpp_sp_t *cmpp, const char *user, const char *password) {
     if (!cmpp) {
         return -1;
     }
     
-    CMPP_CONNECT_T ccp;
+    cmpp_connect_t ccp;
     memset(&ccp, 0, sizeof(ccp));
     
     /* Header */
-    cmpp_add_header((CMPP_HEAD_T *)&ccp, sizeof(ccp), CMPP_CONNECT, cmpp->sequence());
+    cmpp_add_header((cmpp_head_t *)&ccp, sizeof(ccp), CMPP_CONNECT, cmpp->sequence());
 
     /* Source_Addr */
     memcpy(ccp.sourceAddr, user, sizeof(ccp.sourceAddr));
@@ -130,8 +130,8 @@ int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
     
     /* Confirm response status */
     int status;
-    CMPP_PACK_T pack;
-    CMPP_CONNECT_RESP_T *ccrp;
+    cmpp_pack_t pack;
+    cmpp_connect_resp_t *ccrp;
 
     cmpp_recv(cmpp, &pack, sizeof(pack));
 
@@ -140,7 +140,7 @@ int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
         return -1;
     }
 
-    ccrp = (CMPP_CONNECT_RESP_T *)&pack;
+    ccrp = (cmpp_connect_resp_t *)&pack;
     /* status = ntohl(ccrp->status); */
     status = ccrp->status;
 
@@ -151,21 +151,21 @@ int cmpp_connect(CMPP_SP_T *cmpp, const char *user, const char *password) {
     return status;
 }
 
-int cmpp_active_test(CMPP_SP_T *cmpp) {
+int cmpp_active_test(cmpp_sp_t *cmpp) {
     if (!cmpp) {
         return -1;
     }
 
-    CMPP_ACTIVE_TEST_T catp;
+    cmpp_active_test_t catp;
     memset(&catp, 0, sizeof(catp));
-    cmpp_add_header((CMPP_HEAD_T *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp->sequence());
+    cmpp_add_header((cmpp_head_t *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp->sequence());
 
     if (cmpp_send(cmpp, &catp, sizeof(catp)) != 0) {
         cmpp->err = CMPP_ERR_ACTSCPE;
         return -1;
     }
 
-    CMPP_PACK_T pack;
+    cmpp_pack_t pack;
 
     cmpp_recv(cmpp, &pack, sizeof(pack));
 
@@ -177,21 +177,21 @@ int cmpp_active_test(CMPP_SP_T *cmpp) {
     return 0;
 }
 
-int cmpp_terminate(CMPP_SP_T *cmpp) {
+int cmpp_terminate(cmpp_sp_t *cmpp) {
     if (!cmpp) {
         return -1;
     }
 
-    CMPP_TERMINATE_T ctp;
+    cmpp_terminate_t ctp;
     memset(&ctp, 0, sizeof(ctp));
-    cmpp_add_header((CMPP_HEAD_T *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp->sequence());
+    cmpp_add_header((cmpp_head_t *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp->sequence());
 
     if (cmpp_send(cmpp, &ctp, sizeof(ctp)) != 0) {
         cmpp->err = CMPP_ERR_TERSTPE;
         return -1;
     }
 
-    CMPP_PACK_T pack;
+    cmpp_pack_t pack;
 
     cmpp_recv(cmpp, &pack, sizeof(pack));    
 
@@ -204,7 +204,7 @@ int cmpp_terminate(CMPP_SP_T *cmpp) {
     return 0;
 }
 
-int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool delivery,
+int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
                 char *serviceId, char *msgFmt, char *msgSrc) {
 
     if (!cmpp) {
@@ -212,13 +212,13 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
     }
 
     char buff[140];
-    CMPP_SUBMIT_T csp;
+    cmpp_submit_t csp;
     size_t offset, msgLen;
     
     memset(&csp, 0, sizeof(csp));
-    cmpp_add_header((CMPP_HEAD_T *)&csp, sizeof(csp), CMPP_SUBMIT, cmpp->sequence());
+    cmpp_add_header((cmpp_head_t *)&csp, sizeof(csp), CMPP_SUBMIT, cmpp->sequence());
 
-    offset = sizeof(CMPP_HEAD_T);
+    offset = sizeof(cmpp_head_t);
     
     /* Msg_Id */
     cmpp_pack_add_integer(&csp, 0, &offset, 8);
@@ -308,8 +308,8 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
         return -1;
     }
 
-    CMPP_PACK_T pack;
-    CMPP_SUBMIT_RESP_T *csrp;
+    cmpp_pack_t pack;
+    cmpp_submit_resp_t *csrp;
 
     cmpp_recv(cmpp, &pack, sizeof(pack));    
 
@@ -318,17 +318,17 @@ int cmpp_submit(CMPP_SP_T *cmpp, const char *phone, const char *message, bool de
         return -1;
     }
 
-    csrp = (CMPP_SUBMIT_RESP_T *)&pack;
+    csrp = (cmpp_submit_resp_t *)&pack;
     //int result = ntohs(csrp->result);
     
     return csrp->result;
 }
 
-int cmpp_deliver_resp(CMPP_SP_T *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
-    CMPP_DELIVER_RESP_T cdrp;
+int cmpp_deliver_resp(cmpp_sp_t *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
+    cmpp_deliver_resp_t cdrp;
 
     memset(&cdrp, 0, sizeof(cdrp));
-    cmpp_add_header((CMPP_HEAD_T *)&cdrp, sizeof(cdrp), CMPP_DELIVER_RESP, sequenceId);
+    cmpp_add_header((cmpp_head_t *)&cdrp, sizeof(cdrp), CMPP_DELIVER_RESP, sequenceId);
 
     cdrp.msgId = msgId;
     cdrp.result = result;

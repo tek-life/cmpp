@@ -21,9 +21,8 @@
 #include <netinet/tcp.h>
 #include <pthread.h>
 #include "socket.h"
-#include "common.h"
 
-int cmpp_sock_init(CMPP_SOCK_T *sock) {
+int cmpp_sock_init(cmpp_sock_t *sock) {
     sock->conTimeout = 3000;
     sock->sendTimeout = 50;
     sock->recvTimeout = 50;
@@ -43,7 +42,7 @@ int cmpp_sock_create(void) {
     return fd;
 }
 
-int cmpp_sock_setting(CMPP_SOCK_T *sock, int opt, long long val) {
+int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val) {
     switch (opt) {
     case CMPP_SOCK_CONTIMEOUT:
         sock->conTimeout = val;
@@ -59,7 +58,7 @@ int cmpp_sock_setting(CMPP_SOCK_T *sock, int opt, long long val) {
     return 0;
 }
 
-int cmpp_sock_bind(CMPP_SOCK_T *sock, const char *addr, unsigned short port, int backlog) {
+int cmpp_sock_bind(cmpp_sock_t *sock, const char *addr, unsigned short port, int backlog) {
     struct sockaddr_in servaddr;
 
     memset(&servaddr, 0, sizeof(servaddr));
@@ -83,7 +82,7 @@ int cmpp_sock_bind(CMPP_SOCK_T *sock, const char *addr, unsigned short port, int
     return 0;
 }
 
-int cmpp_sock_connect(CMPP_SOCK_T *sock, const char *addr, unsigned short port) {
+int cmpp_sock_connect(cmpp_sock_t *sock, const char *addr, unsigned short port) {
     struct sockaddr_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
@@ -103,7 +102,7 @@ int cmpp_sock_connect(CMPP_SOCK_T *sock, const char *addr, unsigned short port) 
     return 0;
 }
 
-int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
+int cmpp_sock_send(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
     int ret;
     int offset = 0;
 
@@ -125,7 +124,7 @@ int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     return offset;
 }
 
-int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
+int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
     int ret;
     int offset = 0;
 
@@ -149,11 +148,11 @@ int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     return offset;
 }
 
-int cmpp_sock_close(CMPP_SOCK_T *sock) {
+int cmpp_sock_close(cmpp_sock_t *sock) {
     return close(sock->fd);
 }
 
-int cmpp_sock_nonblock(CMPP_SOCK_T *sock, bool enable) {
+int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable) {
     int ret, flag;
 
     flag = fcntl(sock->fd, F_GETFL, 0);
@@ -177,7 +176,7 @@ int cmpp_sock_nonblock(CMPP_SOCK_T *sock, bool enable) {
     return 0;
 }
 
-int cmpp_sock_tcpnodelay(CMPP_SOCK_T *sock, bool enable) {
+int cmpp_sock_tcpnodelay(cmpp_sock_t *sock, bool enable) {
     int ret, flag;
 
     flag = enable ? 1 : 0;
@@ -189,7 +188,7 @@ int cmpp_sock_tcpnodelay(CMPP_SOCK_T *sock, bool enable) {
     return 0;
 }
 
-int cmpp_sock_keepavlie(CMPP_SOCK_T *sock, int idle, int interval, int count) {
+int cmpp_sock_keepavlie(cmpp_sock_t *sock, int idle, int interval, int count) {
     int keepalive = 1;
     setsockopt(sock->fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepalive, sizeof(keepalive));
     setsockopt(sock->fd, IPPROTO_TCP, TCP_KEEPIDLE, (void *)&idle, sizeof(idle));
@@ -199,7 +198,7 @@ int cmpp_sock_keepavlie(CMPP_SOCK_T *sock, int idle, int interval, int count) {
     return 0;
 }
 
-int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long millisecond) {
+int cmpp_sock_timeout(cmpp_sock_t *sock, int type, long long millisecond) {
     struct timeval timeout;
 
     timeout.tv_sec = millisecond / 1000;

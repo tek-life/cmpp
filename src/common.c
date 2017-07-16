@@ -25,11 +25,11 @@ unsigned int gen_sequence(void) {
     return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
 }
 
-int cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
+int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len) {
     int ret;
-    CMPP_HEAD_T *chp;
+    cmpp_head_t *chp;
 
-    chp = (CMPP_HEAD_T *)pack;
+    chp = (cmpp_head_t *)pack;
 
     if (ntohl(chp->totalLength) > len) {
     	return CMPP_ERR_PROPACKLENERR;
@@ -44,12 +44,12 @@ int cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
     return 0;
 }
 
-int cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
+int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len) {
     int ret;
-    CMPP_HEAD_T *chp;
+    cmpp_head_t *chp;
     int chpLen, pckLen;
 
-    chpLen = sizeof(CMPP_HEAD_T);
+    chpLen = sizeof(cmpp_head_t);
 
     if (len < chpLen) {
     	return CMPP_ERR_PROPACKLENERR;
@@ -61,7 +61,7 @@ int cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
         return CMPP_ERR_PROPACKLENERR;
     }
 
-    chp = (CMPP_HEAD_T *)pack;
+    chp = (cmpp_head_t *)pack;
     pckLen = ntohl(chp->totalLength);
     
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
@@ -72,7 +72,7 @@ int cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
     return 0;
 }
 
-int cmpp_add_header(CMPP_HEAD_T *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
+int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
     if (!chp) {
         return -1;
     }
@@ -85,8 +85,8 @@ int cmpp_add_header(CMPP_HEAD_T *chp, unsigned int totalLength, unsigned int com
 }
 
 bool is_cmpp_command(void *pack, size_t len, unsigned int command) {
-    if (pack && len >= sizeof(CMPP_HEAD_T)) {
-        CMPP_HEAD_T *chp = (CMPP_HEAD_T *)pack;
+    if (pack && len >= sizeof(cmpp_head_t)) {
+        cmpp_head_t *chp = (cmpp_head_t *)pack;
         if (ntohl(chp->commandId) == command) {
             return true;
         }
