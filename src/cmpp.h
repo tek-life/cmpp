@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include "socket.h"
 
 #define CMPP_VERSION 0x20
 #define CMPP_PACK_MAX 4096
@@ -145,15 +146,6 @@ typedef struct {
     unsigned int sequenceId;
     unsigned char data[CMPP_PACK_MAX];
 } cmpp_pack_t;
-
-typedef struct {
-    int fd;
-    long long conTimeout;
-    long long sendTimeout;
-    long long recvTimeout;
-    pthread_mutex_t rlock;
-    pthread_mutex_t wlock;
-} cmpp_sock_t;
 
 /* Cmpp Session Handle */
 typedef struct {

@@ -19,10 +19,10 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <signal.h>
-#include "cmpp.h"
+#include "socket.h"
 #include "packet.h"
 #include "common.h"
-#include "socket.h"
+#include "cmpp.h"
 
 int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
     if (!cmpp) {
@@ -212,43 +212,45 @@ int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool de
     }
 
     char buff[140];
-    cmpp_submit_t csp;
+    cmpp_head_t *head;
+    cmpp_pack_t pack;
     size_t offset, msgLen;
     
-    memset(&csp, 0, sizeof(csp));
-    cmpp_add_header((cmpp_head_t *)&csp, sizeof(csp), CMPP_SUBMIT, cmpp->sequence());
+    memset(&pack, 0, sizeof(pack));
+    head = (cmpp_head_t *)&pack;
+    cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT, cmpp->sequence());
 
     offset = sizeof(cmpp_head_t);
     
     /* Msg_Id */
-    cmpp_pack_add_integer(&csp, 0, &offset, 8);
+    cmpp_pack_add_integer(&pack, 0, &offset, 8);
     
     /* Pk_Total */
-    cmpp_pack_add_integer(&csp, 1, &offset, 1);
+    cmpp_pack_add_integer(&pack, 1, &offset, 1);
     
     /* Pk_Number */
-    cmpp_pack_add_integer(&csp, 1, &offset, 1);
+    cmpp_pack_add_integer(&pack, 1, &offset, 1);
     
     /* Registered_Delivery */
-    cmpp_pack_add_integer(&csp, (delivery ? 1 : 0), &offset, 1);
+    cmpp_pack_add_integer(&pack, (delivery ? 1 : 0), &offset, 1);
 
     /* Msg_Level */
-    cmpp_pack_add_integer(&csp, 1, &offset, 1);
+    cmpp_pack_add_integer(&pack, 1, &offset, 1);
     
     /* Service_Id */
-    cmpp_pack_add_string(&csp, serviceId, strlen(serviceId), &offset, 10);
+    cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 10);
     
     /* Fee_User_Type */
-    cmpp_pack_add_integer(&csp, 0, &offset, 1);
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* FeeTerminal_Id */
-    cmpp_pack_add_string(&csp, phone, strlen(phone), &offset, 21);
+    cmpp_pack_add_string(&pack, phone, strlen(phone), &offset, 21);
     
     /* Tpp_Id */
-    cmpp_pack_add_integer(&csp, 0, &offset, 1);
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Tp_Udhi */
-    cmpp_pack_add_integer(&csp, 0, &offset, 1);
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
     unsigned char mft = 0;
@@ -261,67 +263,54 @@ int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool de
         mft  = 15;
     }
 
-    cmpp_pack_add_integer(&csp, mft, &offset, 1);
+    cmpp_pack_add_integer(&pack, mft, &offset, 1);
     
     /* Msg_Src */
-    cmpp_pack_add_string(&csp, msgSrc, strlen(msgSrc), &offset, 6);
+    cmpp_pack_add_string(&pack, msgSrc, strlen(msgSrc), &offset, 6);
     
     /* Fee_Type */
-    cmpp_pack_add_string(&csp, "02", 2, &offset, 2);
+    cmpp_pack_add_string(&pack, "02", 2, &offset, 2);
     
     /* Fee_Code */
-    cmpp_pack_add_string(&csp, "000000", 6, &offset, 6);
+    cmpp_pack_add_string(&pack, "000000", 6, &offset, 6);
 
     /* ValId_Time */
-    cmpp_pack_add_string(&csp, "0", 1, &offset, 17);
+    cmpp_pack_add_string(&pack, "0", 1, &offset, 17);
     
     /* At_Time */
-    cmpp_pack_add_string(&csp, "0", 1, &offset, 17);
+    cmpp_pack_add_string(&pack, "0", 1, &offset, 17);
     
     /* Src_Id */
-    cmpp_pack_add_string(&csp, serviceId, strlen(serviceId), &offset, 21);
+    cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 21);
     
     /* DestUsr_Tl */
-    cmpp_pack_add_integer(&csp, 1, &offset, 1);
+    cmpp_pack_add_integer(&pack, 1, &offset, 1);
     
     /* Dest_Terminal_Id */
-    cmpp_pack_add_string(&csp, phone, strlen(phone), &offset, 21);
+    cmpp_pack_add_string(&pack, phone, strlen(phone), &offset, 21);
     
 
     /* Msg_Length  */
     memset(buff, 0, sizeof(buff));
     cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", msgFmt);
     msgLen = cmpp_ucs2count(buff);
-    cmpp_pack_add_integer(&csp, msgLen, &offset, 1);
+    cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
     
     /* Msg_Content */
-    cmpp_pack_add_string(&csp, buff, msgLen, &offset, msgLen);
+    cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
 
     /* Reserve  */
-    cmpp_pack_add_string(&csp, "0", 1, &offset, 8);
+    cmpp_pack_add_string(&pack, "0", 1, &offset, 8);
 
     /* Total_Length */
-    csp.totalLength = htonl(offset);
+    head->totalLength = htonl(offset);
 
-    if (cmpp_send(cmpp, &csp, sizeof(csp)) != 0) {
+    if (cmpp_send(cmpp, &pack, sizeof(pack)) != 0) {
         cmpp->err = CMPP_ERR_SUBSSPE;
         return -1;
     }
 
-    cmpp_pack_t pack;
-    cmpp_submit_resp_t *csrp;
-
-    cmpp_recv(cmpp, &pack, sizeof(pack));    
-
-    if (!is_cmpp_command(&pack, sizeof(pack), CMPP_SUBMIT_RESP)) {
-        cmpp->err = CMPP_ERR_SUBSRPE;
-        return -1;
-    }
-
-    csrp = (cmpp_submit_resp_t *)&pack;
-    //int result = ntohs(csrp->result);
-    
-    return csrp->result;
+    return 0;
 }
 
 int cmpp_deliver_resp(cmpp_sp_t *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
