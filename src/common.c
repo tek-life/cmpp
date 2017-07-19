@@ -14,7 +14,6 @@
 #include <sys/time.h>
 #include <arpa/inet.h>
 #include <openssl/md5.h>
-#include <leveldb/c.h>
 #include <iconv.h>
 #include "cmpp.h"
 #include "packet.h"
