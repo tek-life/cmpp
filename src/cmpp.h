@@ -183,6 +183,7 @@ extern int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len);
 extern int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len);
 extern int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
                        char *serviceId, char *msgFmt, char *msgSrc);
+extern int cmpp_free_pack(cmpp_pack_t *pack);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);

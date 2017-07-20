@@ -329,3 +329,14 @@ int cmpp_deliver_resp(cmpp_sp_t *cmpp, unsigned long sequenceId, unsigned long l
 
     return 0;
 }
+
+int cmpp_free_pack(cmpp_pack_t *pack) {
+    if (pack == NULL) {
+        return -1;
+    }
+    
+    free(pack);
+    pack = NULL;
+
+    return 0;
+}
