@@ -10,14 +10,16 @@ int main(int argc, argv char *argv[]) {
   }
 
   int err;
-  CMPP_T cmpp;
+  cmpp_ismg_t cmpp;
 
-  err = cmpp_init(&cmpp, argv[1], atoi(argv[2]), CMPP_ISMG);
+  char *addr = argv[1];
+  char *port = argv[2];
+  err = cmpp_init_ismg(&cmpp, addr, atoi(port));
   if (err) {
-    printf("ERROR: cmpp init error\n");
+    printf("ERROR: %s\n", cmpp_get_error(cmpp.err));
     return 0;
   }
-  printf("cmpp server bind %s port %s successfull\n", argv[1], argv[2]);
+  printf("cmpp server bind %s port %s successfull\n", addr, port);
   cmpp_event_loop(&cmpp);
   cmpp_close(&cmpp);
   return 0;

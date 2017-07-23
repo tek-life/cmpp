@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 #include <arpa/inet.h>
-#include "cmpp.h"
+#include <cmpp2.h>
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
@@ -11,22 +12,44 @@ int main(int argc, char *argv[]) {
     }
     
     int err;
-    CMPP_SP_T cmpp;
+    cmpp_sp_t cmpp;
 
+    signal(SIGPIPE, SIG_IGN);
+    
     /* Cmpp Socket Initialization */
-    err = cmpp_init_sp(&cmpp, "139.196.92.52", 7890);
-    if (err && cmpp.err) {
-        printf("[error] %s\n", cmpp.err);
+    err = cmpp_init_sp(&cmpp, "192.168.1.100", 7890);
+    if (err) {
+        printf("[error] %s\n", cmpp_get_error(cmpp.err));
         return 0;
     }
 
     printf("connect to server successfull\n");
 
     /* Cmpp Login */
-    cmpp_connect(&cmpp, "szbty6", "szbty6123");
+    err = cmpp_connect(&cmpp, "901234", "123456");
     if (!cmpp.ok) {
-        printf("[error] %s\n", cmpp.err);
-        return 0;
+        switch(err) {
+        case -1:
+            printf("[error] %s\n", cmpp_get_error(cmpp.err));
+            break;
+        case 1:
+            printf("[error] protocol packet error\n");
+            break;
+        case 2:
+            printf("[error] illegal source address\n");
+            break;
+        case 3:
+            printf("[error] authentication failed\n");
+            break;
+        case 4:
+            printf("[error] protocol version is too high\n");
+            break;
+        default:
+            printf("[error] unknown error\n");
+            break;
+        }
+        
+        goto exit;
     }
 
     printf("cmpp connect successfull\n");
@@ -43,20 +66,53 @@ int main(int argc, char *argv[]) {
     bool delivery = false;
 
     /* Service Code */
-    char *serviceId = "7434000068";
+    char *serviceId = "1065860008";
 
     /* Message Character Encoding */
     char *msgFmt = "UCS-2";
 
     /* Enterprise Number */
-    char *msgSrc = "730068";
+    char *msgSrc = "901234";
 
     /* Cmpp Send Message */
     err = cmpp_submit(&cmpp, phone, message, delivery, serviceId, msgFmt, msgSrc);
     if (err) {
-        printf("[error] %s\n", cmpp.err);
-        return 0;
+        switch (err) {
+        case -1:
+            printf("[error] %s\n", cmpp_get_error(cmpp.err));
+            break;
+        case 1:
+            printf("[error] protocol packet error\n");
+            break;
+        case 2:
+            printf("[error] protocol command error\n");
+            break;
+        case 3:
+            printf("[error] message numberrepeat\n");
+            break;
+        case 4:
+            printf("[error] message length error\n");
+            break;
+        case 5:
+            printf("[error] tariff code error\n");
+            break;
+        case 6:
+            printf("[error] greater than maximum information length\n");
+            break;
+        case 7:
+            printf("[error] service code error\n");
+            break;
+        case 8:
+            printf("[error] flow control error\n");
+            break;
+        default:
+            printf("[error] unknown error\n");
+            break;
+        }
+
+        goto exit;
     }
+    
     printf("send message cmpp_submit successfull\n");
     sleep(1);
     
@@ -66,6 +122,7 @@ int main(int argc, char *argv[]) {
 
     sleep(1);
 
+exit:
     /* Close Cmpp Socket Connect */
     printf("closing server connection\n");
     cmpp_close(&cmpp);

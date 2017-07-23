@@ -1,7 +1,7 @@
 
 /* 
  * China Mobile CMPP 2.0 Protocol Library
- * By typefo <typefo@qq.com>
+ * Copyright (C) 2017 typefo <typefo@qq.com>
  * Update: 2017-07-10
  */
 
@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 #include <arpa/inet.h>
 #include <openssl/md5.h>
 #include <iconv.h>
@@ -23,68 +24,68 @@ unsigned int gen_sequence(void) {
     return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
 }
 
-bool cmpp_send(CMPP_SP_T *cmpp, void *pack, size_t len) {
-    int ret = 0;
-    CMPP_HEAD_T *chp;
+int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len) {
+    int ret;
+    cmpp_head_t *chp;
 
-    chp = (CMPP_HEAD_T *)pack;
+    chp = (cmpp_head_t *)pack;
 
     if (ntohl(chp->totalLength) > len) {
-    	return false;
+    	return CMPP_ERR_PROPACKLENERR;
     }
 
     ret = cmpp_sock_send(&cmpp->sock, (unsigned char *)pack, ntohl(chp->totalLength));
 
     if (ret != ntohl(chp->totalLength)) {
-        return false;
+        return CMPP_ERR_PROPACKLENERR;
     }
-
-    return true;
+    
+    return 0;
 }
 
-bool cmpp_recv(CMPP_SP_T *cmpp, void *pack, size_t len) {
+int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len) {
     int ret;
-    int chpLen = 0;
-    int pckLen = 0;
-    CMPP_HEAD_T *chp;
+    cmpp_head_t *chp;
+    int chpLen, pckLen;
 
-    chpLen = sizeof(CMPP_HEAD_T);
+    chpLen = sizeof(cmpp_head_t);
 
     if (len < chpLen) {
-    	return false;
+    	return CMPP_ERR_PROPACKLENERR;
     }
 
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
-        return false;
+        return CMPP_ERR_PROPACKLENERR;
     }
 
-    chp = (CMPP_HEAD_T *)pack;
+    chp = (cmpp_head_t *)pack;
     pckLen = ntohl(chp->totalLength);
     
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
-        return false;
+        return CMPP_ERR_PROPACKLENERR;
     }
     
-    return true;
+    return 0;
 }
 
-int cmpp_add_header(CMPP_HEAD_T *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
-    if (chp) {
-        chp->totalLength = htonl(totalLength);
-        chp->commandId = htonl(commandId);
-        chp->sequenceId = htonl(sequenceId);
-        return 0;
+int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
+    if (!chp) {
+        return -1;
     }
 
-    return -1;
+    chp->totalLength = htonl(totalLength);
+    chp->commandId = htonl(commandId);
+    chp->sequenceId = htonl(sequenceId);
+
+    return 0;
 }
 
 bool is_cmpp_command(void *pack, size_t len, unsigned int command) {
-    if (pack && len >= sizeof(CMPP_HEAD_T)) {
-        CMPP_HEAD_T *chp = (CMPP_HEAD_T *)pack;
+    if (pack && len >= sizeof(cmpp_head_t)) {
+        cmpp_head_t *chp = (cmpp_head_t *)pack;
         if (ntohl(chp->commandId) == command) {
             return true;
         }
@@ -122,33 +123,6 @@ int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* 
     return -1;
 }
 
-int cmpp_event_loop(CMPP_SP_T *cmpp) {
-    int client;
-    socklen_t socklen;
-    struct sockaddr_in sockaddr;
-
-    socklen = sizeof(sockaddr);
-
-    while (true) {
-        client = accept(cmpp->sock.fd, (struct sockaddr *)&sockaddr, &socklen);
-        if (client < 0) {
-          if (errno == EAGAIN || errno == EWOULDBLOCK) {
-            sleep(3);
-            continue;
-          } else {
-            printf("cmpp accept socket error!\n");
-            break;
-          }
-        }
-
-        printf("new a client accept successfull\n");
-        sleep(1);
-        close(client);
-    }
-
-    return 0;
-}
-
 size_t cmpp_ucs2count(const char *src) {
     int i = 0;
 
@@ -163,14 +137,60 @@ size_t cmpp_ucs2count(const char *src) {
     return i;
 }
 
-/*
-void cmpp_sleep(int milliseconds) {
-    struct timespec ts;
+char *cmpp_get_error(cmpp_error_t code) {
+    char *error = NULL;
+    switch (code) {
+    case CMPP_ERR_INITCCS:
+        error = "can't create socket";
+        break;
+    case CMPP_ERR_INITCCTS:
+        error = "can't connect to remote server";
+        break;
+    case CMPP_ERR_INITCBSS:
+        break;
+    case CMPP_ERR_CONUPTL:
+        error = "user or password maximum length exceeded";
+        break;
+    case CMPP_ERR_CONSCPE:
+        error = "send cmpp_connect packet failed";
+        break;
+    case CMPP_ERR_CONSRPE:
+        error = "receive cmpp_connect_resp packet error";
+        break;
+    case CMPP_ERR_ACTSCPE:
+        error = "send cmpp_active_test packet failed";
+        break;
+    case CMPP_ERR_ACTSRPE:
+        error = "receive cmpp_active_test_resp packet error";
+        break;
+    case CMPP_ERR_TERSTPE:
+        error = "send cmpp_terminate packet failed";
+        break;
+    case CMPP_ERR_TERSRPE:
+        error = "receive cmpp_terminate_resp packet error";
+        break;
+    case CMPP_ERR_SUBSSPE:
+        error = "send cmpp_submit packet failed";
+        break;
+    case CMPP_ERR_SUBSRPE:
+        error = "receive cmpp_submit_resp packet error";
+        break;
+    case CMPP_ERR_DELSPFE:
+        error = "send cmpp_deliver_resp packet failed";
+        break;
+    case CMPP_ERR_DBWERR:
+        error = "writing leveldb database errors";
+        break;
+    case CMPP_ERR_PROPACKLENERR:
+        error = "protocol packet with incorrect length";
+        break;
+    case CMPP_ERR_LISTPUTERR:
+        error = "write list data error";
+        break;
+    default:
+        error = "unknown error";
+        break;
+    }
 
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = milliseconds % 1000 * 1000000;
-    nanosleep(&ts, NULL);
-    return;
+    return error;
 }
-
-*/

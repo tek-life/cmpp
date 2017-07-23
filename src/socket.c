@@ -1,7 +1,7 @@
 
 /* 
  * China Mobile CMPP 2.0 Protocol Library
- * By typefo <typefo@qq.com>
+ * Copyright (C) 2017 typefo <typefo@qq.com>
  * Update: 2017-05-06
  */
 
@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -20,9 +21,11 @@
 #include <netinet/tcp.h>
 #include <pthread.h>
 #include "socket.h"
-#include "common.h"
 
-int cmpp_sock_init(CMPP_SOCK_T *sock) {
+int cmpp_sock_init(cmpp_sock_t *sock) {
+    sock->conTimeout = 3000;
+    sock->sendTimeout = 50;
+    sock->recvTimeout = 50;
     pthread_mutex_init(&sock->rlock, NULL);
     pthread_mutex_init(&sock->wlock, NULL);
     return 0;
@@ -39,15 +42,23 @@ int cmpp_sock_create(void) {
     return fd;
 }
 
-int cmpp_sock_setting(CMPP_SOCK_T *sock, int conTimeout, int sendTimeout, int recvTimeout) {
-    sock->conTimeout = conTimeout;
-    sock->sendTimeout = sendTimeout;
-    sock->recvTimeout = recvTimeout;
+int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val) {
+    switch (opt) {
+    case CMPP_SOCK_CONTIMEOUT:
+        sock->conTimeout = val;
+        break;
+    case CMPP_SOCK_SENDTIMEOUT:
+        sock->sendTimeout = val;
+        break;
+    case CMPP_SOCK_RECVTIMEOUT:
+        sock->recvTimeout = val;
+        break;
+    }
 
     return 0;
 }
 
-int cmpp_sock_bind(CMPP_SOCK_T *sock, const char *addr, unsigned short port, int backlog) {
+int cmpp_sock_bind(cmpp_sock_t *sock, const char *addr, unsigned short port, int backlog) {
     struct sockaddr_in servaddr;
 
     memset(&servaddr, 0, sizeof(servaddr));
@@ -71,7 +82,7 @@ int cmpp_sock_bind(CMPP_SOCK_T *sock, const char *addr, unsigned short port, int
     return 0;
 }
 
-int cmpp_sock_connect(CMPP_SOCK_T *sock, const char *addr, unsigned short port) {
+int cmpp_sock_connect(cmpp_sock_t *sock, const char *addr, unsigned short port) {
     struct sockaddr_in servaddr;
     memset(&servaddr, 0, sizeof(servaddr));
     servaddr.sin_family = AF_INET;
@@ -91,8 +102,8 @@ int cmpp_sock_connect(CMPP_SOCK_T *sock, const char *addr, unsigned short port) 
     return 0;
 }
 
-int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
-    int ret = 0;
+int cmpp_sock_send(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
+    int ret;
     int offset = 0;
 
     pthread_mutex_lock(&sock->wlock);
@@ -100,16 +111,12 @@ int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     /* Start sending data */
     while (offset < len) {
         ret = write(sock->fd, buff + offset, len - offset);
-        if (ret < 1) {
-            return -1;
-        } else {
+        if (ret > 0) {
             offset += ret;
-            if (offset != len) {
-                continue;
-            } else {
-                break;
-            }
+            continue;
         }
+
+        break;
     }
 
     pthread_mutex_unlock(&sock->wlock);
@@ -117,23 +124,22 @@ int cmpp_sock_send(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     return offset;
 }
 
-int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
-    int ret = 0;
+int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
+    int ret;
     int offset = 0;
 
     pthread_mutex_lock(&sock->rlock);
-    
-    /* Setting socket receive timeout */
-    cmpp_sock_timeout(sock, CMPP_SOCK_RECV, sock->conTimeout);
-
 
     /* Begin to receive data */
     while (offset < len) {
-        ret = read(sock->fd, buff + offset, len - offset);
-        if (ret > 0) {
+        if (cmpp_sock_readable(sock->fd, sock->recvTimeout) > 0) {
+          ret = read(sock->fd, buff + offset, len - offset);
+          if (ret > 0) {
             offset += ret;
             continue;
+          }
         }
+
         break;
     }
 
@@ -142,13 +148,12 @@ int cmpp_sock_recv(CMPP_SOCK_T *sock, unsigned char *buff, size_t len) {
     return offset;
 }
 
-int cmpp_sock_close(CMPP_SOCK_T *sock) {
+int cmpp_sock_close(cmpp_sock_t *sock) {
     return close(sock->fd);
 }
 
-int cmpp_sock_nonblock(CMPP_SOCK_T *sock, bool enable) {
-    int ret;
-    int flag;
+int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable) {
+    int ret, flag;
 
     flag = fcntl(sock->fd, F_GETFL, 0);
 
@@ -171,9 +176,8 @@ int cmpp_sock_nonblock(CMPP_SOCK_T *sock, bool enable) {
     return 0;
 }
 
-int cmpp_sock_tcpnodelay(CMPP_SOCK_T *sock, bool enable) {
-    int ret;
-    int flag;
+int cmpp_sock_tcpnodelay(cmpp_sock_t *sock, bool enable) {
+    int ret, flag;
 
     flag = enable ? 1 : 0;
     ret = setsockopt(sock->fd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(flag));
@@ -184,7 +188,7 @@ int cmpp_sock_tcpnodelay(CMPP_SOCK_T *sock, bool enable) {
     return 0;
 }
 
-int cmpp_sock_keepavlie(CMPP_SOCK_T *sock, int idle, int interval, int count) {
+int cmpp_sock_keepavlie(cmpp_sock_t *sock, int idle, int interval, int count) {
     int keepalive = 1;
     setsockopt(sock->fd, SOL_SOCKET, SO_KEEPALIVE, (void *)&keepalive, sizeof(keepalive));
     setsockopt(sock->fd, IPPROTO_TCP, TCP_KEEPIDLE, (void *)&idle, sizeof(idle));
@@ -194,11 +198,11 @@ int cmpp_sock_keepavlie(CMPP_SOCK_T *sock, int idle, int interval, int count) {
     return 0;
 }
 
-int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long value) {
+int cmpp_sock_timeout(cmpp_sock_t *sock, int type, long long millisecond) {
     struct timeval timeout;
 
-    timeout.tv_sec = value / 1000;
-    timeout.tv_usec = (value % 1000) * 1000;
+    timeout.tv_sec = millisecond / 1000;
+    timeout.tv_usec = (millisecond % 1000) * 1000;
     type = (type == CMPP_SOCK_SEND) ? SO_SNDTIMEO : SO_RCVTIMEO;
 
     if (setsockopt(sock->fd, SOL_SOCKET, type, (void *)&timeout, sizeof(timeout)) == -1) {
@@ -206,4 +210,34 @@ int cmpp_sock_timeout(CMPP_SOCK_T *sock, int type, long long value) {
     }
 
     return 0;
+}
+
+int cmpp_sock_readable(int fd, long long millisecond) {
+    int ret;
+    fd_set rset;
+    struct timeval timeout;
+
+    timeout.tv_sec = millisecond / 1000;
+    timeout.tv_usec = (millisecond % 1000) * 1000;
+
+    FD_ZERO(&rset);
+    FD_SET(fd, &rset);
+    ret = select(fd + 1, &rset, NULL, NULL, &timeout);
+
+    return ret;
+}
+
+int cmpp_sock_writable(int fd, long long millisecond) {
+    int ret;
+    fd_set wset;
+    struct timeval timeout;
+
+    timeout.tv_sec = millisecond / 1000;
+    timeout.tv_usec = (millisecond % 1000) * 1000;
+
+    FD_ZERO(&wset);
+    FD_SET(fd, &wset);
+    ret = select(fd + 1, NULL, &wset, NULL, &timeout);
+
+    return ret;
 }
