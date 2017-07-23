@@ -19,6 +19,6 @@ bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
 size_t cmpp_ucs2count(const char *src);
-char *cmpp_get_error(unsigned int code);
+char *cmpp_get_error(cmpp_error_t code);
 
 #endif

@@ -58,7 +58,7 @@
 #define CMPP_PUSH_MO_ROUTE_UPDATE_RESP 0x80000016
 
 /* Error Code Definition */
-enum {
+typedef enum {
     CMPP_STATUS_OK,
     CMPP_ERR_INITCCS,
     CMPP_ERR_INITCCTS,
@@ -77,7 +77,7 @@ enum {
     CMPP_ERR_DBWERR,
     CMPP_ERR_PROPACKLENERR,
     CMPP_ERR_LISTPUTERR
-};
+} cmpp_error_t;
 
 /* CMPP_CONNECT */
 #define cmpp_connect_source_addr              12
@@ -188,7 +188,7 @@ extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
-extern char *cmpp_get_error(unsigned int code);
+extern char *cmpp_get_error(cmpp_error_t code);
 extern void cmpp_pack_add_string(void *pack, const char *data, size_t len, size_t *offset, size_t size);
 extern void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size);
 extern void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len);

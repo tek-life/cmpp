@@ -137,7 +137,7 @@ size_t cmpp_ucs2count(const char *src) {
     return i;
 }
 
-char *cmpp_get_error(unsigned int code) {
+char *cmpp_get_error(cmpp_error_t code) {
     char *error = NULL;
     switch (code) {
     case CMPP_ERR_INITCCS:
