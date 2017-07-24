@@ -1,13 +1,14 @@
 
 /* 
  * China Mobile CMPP 2.0 Protocol Library
- * By typefo <typefo@qq.com>
+ * Copyright (C) 2017 typefo <typefo@qq.com>
  * Update: 2017-05-18
  */
 
 #ifndef _CMPP_PACKET_H
 #define _CMPP_PACKET_H
 
+#pragma pack(1)
 #include "string.h"
 
 /* CMPP_CONNECT Message Packet (SP -> ISMG) */
@@ -19,7 +20,7 @@ typedef struct {
     unsigned char authenticatorSource[16];
     unsigned char version;
     unsigned int timestamp;
-} __attribute__((packed)) cmpp_connect_t;
+} cmpp_connect_t;
 
 
 /* CMPP_CONNECT Message Packet (ISMG -> SP) */
@@ -30,21 +31,21 @@ typedef struct {
     unsigned char status;
     unsigned char authenticatorISMG[16];
     unsigned char version;
-} __attribute__((packed)) cmpp_connect_resp_t;
+} cmpp_connect_resp_t;
 
 /* CMPP_TERMINATE Message Packet (SP <=> ISMG) */
 typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-} __attribute__((packed)) cmpp_terminate_t;
+} cmpp_terminate_t;
 
 /* CMPP_TERMINATE_RESP Message Packet (SP <=> ISMG) */
 typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-} __attribute__((packed)) cmpp_terminate_resp_t;
+} cmpp_terminate_resp_t;
 
 /* CMPP_DELIVER_RESP Message Packet (ISMG -> SP) */
 typedef struct {
@@ -53,14 +54,14 @@ typedef struct {
     unsigned int sequenceId;
     unsigned long long msgId;
     unsigned char result;
-} __attribute__((packed)) cmpp_deliver_resp_t;
+} cmpp_deliver_resp_t;
 
 /* CMPP_ACTIVE_TEST Message Packet (SP <=> ISMG) */
 typedef struct {
     unsigned int totalLength;
     unsigned int commandId;
     unsigned int sequenceId;
-} __attribute__((packed)) cmpp_active_test_t;
+} cmpp_active_test_t;
 
 /* CMPP_ACTIVE_TEST_RESP Message Packet (SP <=> ISMG) */
 typedef struct {
@@ -68,7 +69,7 @@ typedef struct {
     unsigned int commandId;
     unsigned int sequenceId;
     unsigned char reserved;
-} __attribute__((packed)) cmpp_active_test_resp_t;
+} cmpp_active_test_resp_t;
 
 /* CMPP_CONNECT */
 #define cmpp_connect_source_addr              12

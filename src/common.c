@@ -1,7 +1,7 @@
 
 /* 
  * China Mobile CMPP 2.0 Protocol Library
- * By typefo <typefo@qq.com>
+ * Copyright (C) 2017 typefo <typefo@qq.com>
  * Update: 2017-07-10
  */
 
@@ -137,7 +137,7 @@ size_t cmpp_ucs2count(const char *src) {
     return i;
 }
 
-char *cmpp_get_error(unsigned int code) {
+char *cmpp_get_error(cmpp_error_t code) {
     char *error = NULL;
     switch (code) {
     case CMPP_ERR_INITCCS:
