@@ -170,7 +170,7 @@ extern int cmpp_connect(cmpp_sp_t *cmpp, const char *user, const char *password)
 extern int cmpp_connect_resp(cmpp_sp_t *cmpp);
 extern int cmpp_terminate(cmpp_sp_t *cmpp);
 extern int cmpp_terminate_resp(cmpp_sp_t *cmpp);
-extern int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
+extern unsigned int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
                        char *serviceId, char *msgFmt, char *msgSrc);
 extern int cmpp_submit_resp(cmpp_sp_t *cmpp);
 extern int cmpp_deliver(cmpp_sp_t *cmpp);
@@ -181,8 +181,6 @@ extern int cmpp_close(cmpp_sp_t *cmpp);
 extern unsigned int gen_sequence(void);
 extern int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len);
 extern int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len);
-extern int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
-                       char *serviceId, char *msgFmt, char *msgSrc);
 extern int cmpp_free_pack(cmpp_pack_t *pack);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
