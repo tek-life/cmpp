@@ -204,7 +204,7 @@ int cmpp_terminate(cmpp_sp_t *cmpp) {
     return 0;
 }
 
-int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
+unsigned int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
                 char *serviceId, char *msgFmt, char *msgSrc) {
 
     if (!cmpp) {
@@ -310,7 +310,7 @@ int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool de
         return -1;
     }
 
-    return 0;
+    return pack.sequenceId;
 }
 
 int cmpp_deliver_resp(cmpp_sp_t *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
