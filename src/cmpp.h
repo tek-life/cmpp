@@ -79,6 +79,12 @@ typedef enum {
     CMPP_ERR_LISTPUTERR
 } cmpp_error_t;
 
+
+/* CMPP HEADER */
+#define cmpp_total_length                     0
+#define cmpp_command_id                       4
+#define cmpp_sequence_id                      8
+
 /* CMPP_CONNECT */
 #define cmpp_connect_source_addr              12
 #define cmpp_connect_authenticator_source     18

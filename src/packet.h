@@ -8,8 +8,9 @@
 #ifndef _CMPP_PACKET_H
 #define _CMPP_PACKET_H
 
-#pragma pack(1)
 #include "string.h"
+
+#pragma pack(1)
 
 /* CMPP_CONNECT Message Packet (SP -> ISMG) */
 typedef struct {
@@ -70,6 +71,8 @@ typedef struct {
     unsigned int sequenceId;
     unsigned char reserved;
 } cmpp_active_test_resp_t;
+
+#pragma pack()
 
 /* CMPP_CONNECT */
 #define cmpp_connect_source_addr              12
