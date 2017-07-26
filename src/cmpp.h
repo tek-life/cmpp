@@ -195,7 +195,7 @@ extern int cmpp_submit_resp(cmpp_sp_t *cmpp);
 extern int cmpp_deliver(cmpp_sp_t *cmpp);
 extern int cmpp_deliver_resp(cmpp_sp_t *cmpp, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
 extern int cmpp_active_test(cmpp_sp_t *cmpp);
-extern int cmpp_active_test_resp(cmpp_sp_t *cmpp);
+extern int cmpp_active_test_resp(cmpp_sp_t *cmpp, unsigned int sequenceId);
 extern int cmpp_close(cmpp_sp_t *cmpp);
 extern unsigned int gen_sequence(void);
 extern int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len);
