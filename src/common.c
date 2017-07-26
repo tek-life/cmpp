@@ -141,62 +141,10 @@ size_t cmpp_ucs2count(const char *src) {
 }
 
 char *cmpp_get_error(cmpp_error_t code) {
-    char *error = NULL;
-    switch (code) {
-    case CMPP_ERR_INITCCS:
-        error = "can't create socket";
-        break;
-    case CMPP_ERR_INITCCTS:
-        error = "can't connect to remote server";
-        break;
-    case CMPP_ERR_INITCBSS:
-        break;
-    case CMPP_ERR_CONUPTL:
-        error = "user or password maximum length exceeded";
-        break;
-    case CMPP_ERR_CONSCPE:
-        error = "send cmpp_connect packet failed";
-        break;
-    case CMPP_ERR_CONSRPE:
-        error = "receive cmpp_connect_resp packet error";
-        break;
-    case CMPP_ERR_ACTSCPE:
-        error = "send cmpp_active_test packet failed";
-        break;
-    case CMPP_ERR_ACTSRPE:
-        error = "receive cmpp_active_test_resp packet error";
-        break;
-    case CMPP_ERR_TERSTPE:
-        error = "send cmpp_terminate packet failed";
-        break;
-    case CMPP_ERR_TERSRPE:
-        error = "receive cmpp_terminate_resp packet error";
-        break;
-    case CMPP_ERR_SUBSSPE:
-        error = "send cmpp_submit packet failed";
-        break;
-    case CMPP_ERR_SUBSRPE:
-        error = "receive cmpp_submit_resp packet error";
-        break;
-    case CMPP_ERR_DELSPFE:
-        error = "send cmpp_deliver_resp packet failed";
-        break;
-    case CMPP_ERR_DBWERR:
-        error = "writing leveldb database errors";
-        break;
-    case CMPP_ERR_PROPACKLENERR:
-        error = "protocol packet with incorrect length";
-        break;
-    case CMPP_ERR_LISTPUTERR:
-        error = "write list data error";
-        break;
-    case CMPP_ERR_NODATA:
-        error = "no data available";
-        break;
-    default:
-        error = "unknown error";
-        break;
+    char *error = "unknown error";
+    if ((code >= 0) && (code < (sizeof(cmpp_error_strings) / sizeof(char *)))) {
+        error = cmpp_error_strings[code];
     }
-
+    
     return error;
 }

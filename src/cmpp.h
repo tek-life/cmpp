@@ -56,30 +56,6 @@
 #define CMPP_PUSH_MO_ROUTE_UPDATE      0x00000016
 #define CMPP_PUSH_MO_ROUTE_UPDATE_RESP 0x80000016
 
-/* Error Code Definition */
-typedef enum {
-    CMPP_STATUS_OK,
-    CMPP_ERR_INITCCS,
-    CMPP_ERR_INITCCTS,
-    CMPP_ERR_INITCBSS,
-    CMPP_ERR_CONUPTL,
-    CMPP_ERR_CONSCPE,
-    CMPP_ERR_CONSRPE,
-    CMPP_ERR_ACTSCPE,
-    CMPP_ERR_ACTSRPE,
-    CMPP_ERR_TERSTPE,
-    CMPP_ERR_TERSRPE,
-    CMPP_ERR_SUBSSPE,
-    CMPP_ERR_SUBSRPE,
-    CMPP_ERR_DELSPFE,
-    CMPP_ERR_SENMAXUNLEN,
-    CMPP_ERR_DBWERR,
-    CMPP_ERR_PROPACKLENERR,
-    CMPP_ERR_LISTPUTERR,
-    CMPP_ERR_NODATA
-} cmpp_error_t;
-
-
 /* CMPP HEADER */
 #define cmpp_total_length                     0
 #define cmpp_command_id                       4
@@ -138,6 +114,49 @@ typedef enum {
 /* CMPP_DELIVER_RESP */
 #define cmpp_deliver_resp_msg_id              12
 #define cmpp_deliver_resp_result              20
+
+/* Error Code Definition */
+typedef enum {
+    CMPP_STATUS_OK,
+    CMPP_ERR_INITCCS,
+    CMPP_ERR_INITCCTS,
+    CMPP_ERR_INITCBSS,
+    CMPP_ERR_CONUPTL,
+    CMPP_ERR_CONSCPE,
+    CMPP_ERR_CONSRPE,
+    CMPP_ERR_ACTSCPE,
+    CMPP_ERR_ACTSRPE,
+    CMPP_ERR_TERSTPE,
+    CMPP_ERR_TERSRPE,
+    CMPP_ERR_SUBSSPE,
+    CMPP_ERR_SUBSRPE,
+    CMPP_ERR_DELSPFE,
+    CMPP_ERR_SENMAXUNLEN,
+    CMPP_ERR_DBWERR,
+    CMPP_ERR_PROPACKLENERR,
+    CMPP_ERR_LISTPUTERR,
+    CMPP_ERR_NODATA
+} cmpp_error_t;
+
+const char *cmpp_error_strings[] = {
+    "operation completed successfully"
+    "can't create socket",
+    "can't connect to remote server",
+    "user or password maximum length exceeded",
+    "send cmpp_connect packet failed",
+    "receive cmpp_connect_resp packet error",
+    "send cmpp_active_test packet failed",
+    "receive cmpp_active_test_resp packet error",
+    "send cmpp_terminate packet failed",
+    "receive cmpp_terminate_resp packet error",
+    "send cmpp_submit packet failed",
+    "receive cmpp_submit_resp packet error",
+    "send cmpp_deliver_resp packet failed",
+    "writing leveldb database errors",
+    "protocol packet with incorrect length",
+    "write list data error",
+    "no data available"
+};
 
 /* Cmpp Packet Message Header */
 typedef struct {
