@@ -352,3 +352,26 @@ int cmpp_free_pack(cmpp_pack_t *pack) {
 
     return 0;
 }
+
+bool cmpp_check_connect(cmpp_sp_t *cmpp) {
+    cmpp_pack_t pack;
+    pthread_mutex_lock(&cmpp->sock->wlock);
+    pthread_mutex_lock(&cmpp->sock->rlock);
+    
+    if (cmpp_active_test(cmpp) != 0) {
+        return false;
+    }
+
+    if (cmpp_recv(cmpp, &pack, sizeof(cmpp_pack_t)) != 0) {
+        return false;
+    }
+
+    pthread_mutex_unlock(&cmpp->sock->wlock);
+    pthread_mutex_unlock(&cmpp->sock->rlock);
+    
+    if (!is_cmpp_command(&pack, sizeof(cmpp_pack_t), CMPP_ACTIVE_TEST_RESP)) {
+        return false;
+    }
+
+    return true;
+}
