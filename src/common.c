@@ -190,7 +190,7 @@ char *cmpp_get_error(cmpp_error_t code) {
     case CMPP_ERR_LISTPUTERR:
         error = "write list data error";
         break;
-    case CMPP_ERRNODATA:
+    case CMPP_ERR_NODATA:
         error = "no data available";
         break;
     default:

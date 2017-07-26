@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include "socket.h"
 
 #define CMPP_VERSION 0x20
 #define CMPP_PACK_MAX 4096
