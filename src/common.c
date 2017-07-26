@@ -160,8 +160,8 @@ size_t cmpp_ucs2count(const char *src) {
     return i;
 }
 
-char *cmpp_get_error(cmpp_error_t code) {
-    char *error = "unknown error";
+const char *cmpp_get_error(cmpp_error_t code) {
+    const char *error = "unknown error";
     if ((code >= 0) && (code < (sizeof(cmpp_error_strings) / sizeof(char *)))) {
         error = cmpp_error_strings[code];
     }

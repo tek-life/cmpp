@@ -138,26 +138,6 @@ typedef enum {
     CMPP_ERR_NODATA
 } cmpp_error_t;
 
-const char *cmpp_error_strings[] = {
-    "operation completed successfully"
-    "can't create socket",
-    "can't connect to remote server",
-    "user or password maximum length exceeded",
-    "send cmpp_connect packet failed",
-    "receive cmpp_connect_resp packet error",
-    "send cmpp_active_test packet failed",
-    "receive cmpp_active_test_resp packet error",
-    "send cmpp_terminate packet failed",
-    "receive cmpp_terminate_resp packet error",
-    "send cmpp_submit packet failed",
-    "receive cmpp_submit_resp packet error",
-    "send cmpp_deliver_resp packet failed",
-    "writing leveldb database errors",
-    "protocol packet with incorrect length",
-    "write list data error",
-    "no data available"
-};
-
 /* Cmpp Packet Message Header */
 typedef struct {
     unsigned int totalLength;
@@ -224,7 +204,7 @@ extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
-extern char *cmpp_get_error(cmpp_error_t code);
+extern const char *cmpp_get_error(cmpp_error_t code);
 extern void cmpp_pack_add_string(void *pack, const char *data, size_t len, size_t *offset, size_t size);
 extern void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size);
 extern void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len);
