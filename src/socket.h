@@ -9,6 +9,7 @@
 #define _CMPP_SOCKET_H
 
 #include <stdbool.h>
+#include <pthread.h>
 
 typedef struct {
     int fd;

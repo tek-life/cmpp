@@ -15,9 +15,29 @@
 #include <arpa/inet.h>
 #include <openssl/md5.h>
 #include <iconv.h>
-#include "cmpp.h"
 #include "packet.h"
 #include "socket.h"
+#include "cmpp.h"
+
+static const char *cmpp_error_strings[] = {
+    "operation completed successfully"
+    "can't create socket",
+    "can't connect to remote server",
+    "user or password maximum length exceeded",
+    "send cmpp_connect packet failed",
+    "receive cmpp_connect_resp packet error",
+    "send cmpp_active_test packet failed",
+    "receive cmpp_active_test_resp packet error",
+    "send cmpp_terminate packet failed",
+    "receive cmpp_terminate_resp packet error",
+    "send cmpp_submit packet failed",
+    "receive cmpp_submit_resp packet error",
+    "send cmpp_deliver_resp packet failed",
+    "writing leveldb database errors",
+    "protocol packet with incorrect length",
+    "write list data error",
+    "no data available"
+};
 
 unsigned int gen_sequence(void) {
     static unsigned int seq = 1;
