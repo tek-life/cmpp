@@ -76,7 +76,8 @@ typedef enum {
     CMPP_ERR_SENMAXUNLEN,
     CMPP_ERR_DBWERR,
     CMPP_ERR_PROPACKLENERR,
-    CMPP_ERR_LISTPUTERR
+    CMPP_ERR_LISTPUTERR,
+    CMPP_ERR_NODATA
 } cmpp_error_t;
 
 
@@ -152,6 +153,19 @@ typedef struct {
     unsigned int sequenceId;
     unsigned char data[CMPP_PACK_MAX];
 } cmpp_pack_t;
+
+#ifndef _CMPP_SOCKET_H
+
+typedef struct {
+    int fd;
+    long long conTimeout;
+    long long sendTimeout;
+    long long recvTimeout;
+    pthread_mutex_t rlock;
+    pthread_mutex_t wlock;
+} cmpp_sock_t;
+
+#endif
 
 /* Cmpp Session Handle */
 typedef struct {

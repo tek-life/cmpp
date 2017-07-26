@@ -57,6 +57,9 @@ int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len) {
     ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
+        if (ret == 0) {
+            return CMPP_ERR_NODATA;
+        }
         return CMPP_ERR_PROPACKLENERR;
     }
 
@@ -186,6 +189,9 @@ char *cmpp_get_error(cmpp_error_t code) {
         break;
     case CMPP_ERR_LISTPUTERR:
         error = "write list data error";
+        break;
+    case CMPP_ERRNODATA:
+        error = "no data available";
         break;
     default:
         error = "unknown error";
