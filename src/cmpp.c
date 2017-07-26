@@ -177,6 +177,18 @@ int cmpp_active_test(cmpp_sp_t *cmpp) {
     return 0;
 }
 
+int cmpp_active_test_resp(cmpp_sp_t *cmpp, unsigned int sequenceId) {
+    if (!cmpp) {
+        return -1;
+    }
+    
+    cmpp_active_test_resp_t catrp;
+    memset(&catrp, 0, sizeof(cmpp_active_test_resp_t));
+    cmpp_add_header((cmpp_head_t *)&catrp, sizeof(catrp), CMPP_ACTIVE_TEST_RESP, sequenceId);
+
+    return 0;
+}
+
 int cmpp_terminate(cmpp_sp_t *cmpp) {
     if (!cmpp) {
         return -1;
