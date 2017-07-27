@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include "cmpp.h"
 
-int cmpp_send(cmpp_scok_t *sock, void *pack, size_t len);
+int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len);
 int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId);
 bool is_cmpp_command(void *pack, size_t len, unsigned int command);

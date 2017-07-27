@@ -31,7 +31,6 @@ int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
 
     int err;
     cmpp->ok = false;
-    cmpp->err = 0;
     cmpp->version = CMPP_VERSION;
     pthread_mutex_init(&cmpp->lock, NULL);
 
@@ -41,15 +40,13 @@ int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
     /* Create a new socket */
     cmpp->sock.fd = cmpp_sock_create();
     if (cmpp->sock.fd < 1) {
-        cmpp->err = CMPP_ERR_INITCCS;
-        return -1;
+        return CMPP_ERR_INITCCS;
     }
 
     /* Connect to server */
     err = cmpp_sock_connect(&cmpp->sock, host, port);
     if (err) {
-        cmpp->err = CMPP_ERR_INITCCTS;
-        return -1;
+        return CMPP_ERR_INITCCTS;
     }
 
     /* TCP NONBLOCK */
@@ -60,9 +57,6 @@ int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
 
     /* TCP KEEPAVLIE */
     cmpp_sock_keepavlie(&cmpp->sock, 30, 5, 3);
-
-    /* Sequence Number Generator */
-    cmpp->sequence = gen_sequence;
 
     return 0;
 }
