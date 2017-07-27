@@ -160,7 +160,7 @@ int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password) {
     /* Send Cmpp_Connect packet */
     len = sizeof(ccp);
 
-    if (cmpp_send(&cmpp->sock, &ccp, sizeof(ccp)) != 0) {
+    if (cmpp_send(sock, &ccp, sizeof(ccp)) != 0) {
         return CMPP_ERR_CONSCPE;
     }
     
@@ -177,7 +177,9 @@ int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password) {
 
     ccrp = (cmpp_connect_resp_t *)&pack;
     /* status = ntohl(ccrp->status); */
-    return ccrp->status;
+    status = ccrp->status;
+
+    return status;
 }
 
 int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status) {
@@ -244,7 +246,7 @@ int cmpp_terminate(cmpp_sock_t *sock) {
     memset(&ctp, 0, sizeof(ctp));
     cmpp_add_header((cmpp_head_t *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp_sequence());
 
-    if (cmpp_send(&cmpp->sock, &ctp, sizeof(ctp)) != 0) {
+    if (cmpp_send(sock, &ctp, sizeof(ctp)) != 0) {
         return CMPP_ERR_TERSTPE;
     }
 
@@ -408,7 +410,7 @@ bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *us
     memset(buff, 0, sizeof(buff));
     memcpy(buff, user, strlen(user));
     memcpy(buff + strlen(user) + 9, password, strlen(password));
-    memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
+    memcpy(buff + strlen(user) + 9 + strlen(password), pack->timestamp, 10);
     cmpp_md5(authenticatorSource, buff, len);
 
     if (memcmp(authenticatorSource, pack->authenticatorSource, 16) != 0) {

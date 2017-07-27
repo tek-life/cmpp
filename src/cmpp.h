@@ -200,7 +200,7 @@ extern bool cmpp_check_connect(cmpp_sock_t *sock);
 extern int cmpp_sp_close(cmpp_sp_t *cmpp);
 extern int cmpp_ismg_close(cmpp_ismg_t *cmpp);
 extern unsigned int cmpp_sequence(void);
-extern int cmpp_send(cmpp_sock *sock, void *pack, size_t len);
+extern int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len);
 extern int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
 extern int cmpp_free_pack(cmpp_pack_t *pack);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
