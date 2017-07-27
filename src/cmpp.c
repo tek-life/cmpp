@@ -399,6 +399,7 @@ bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *us
     }
 
     int len;
+    char timestamp[11];
     unsigned char buff[128];
     unsigned char authenticatorSource[16];
 
@@ -410,7 +411,13 @@ bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *us
     memset(buff, 0, sizeof(buff));
     memcpy(buff, user, strlen(user));
     memcpy(buff + strlen(user) + 9, password, strlen(password));
-    memcpy(buff + strlen(user) + 9 + strlen(password), pack->timestamp, 10);
+
+    if (ntohl(pack->timestamp) > 9999999999) {
+        return false;
+    }
+    
+    sprintf(timestamp, "%ld", ntohl(pack->timestamp));
+    memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
     cmpp_md5(authenticatorSource, buff, len);
 
     if (memcmp(authenticatorSource, pack->authenticatorSource, 16) != 0) {
