@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <arpa/inet.h>
-#include <cmpp2.h>
+#include <cmpp.h>
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     /* Cmpp Socket Initialization */
     err = cmpp_init_sp(&cmpp, "192.168.1.100", 7890);
     if (err) {
-        printf("[error] %s\n", cmpp_get_error(cmpp.err));
+        printf("[error] %s\n", cmpp_get_error(err));
         return 0;
     }
 

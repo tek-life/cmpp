@@ -204,7 +204,7 @@ extern int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len);
 extern int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
 extern int cmpp_free_pack(cmpp_pack_t *pack);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
-extern bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *user, const char *password);
+extern bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);

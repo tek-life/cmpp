@@ -389,12 +389,14 @@ int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long
     return 0;
 }
 
-bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *user, const char *password) {
+bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password) {
     if (!pack || size < sizeof(cmpp_connect_t)) {
         return false;
     }
 
-    if (pack->version != CMPP_VERSION) {
+    cmpp_connect_t *ccp = pack;
+
+    if (ccp->version != CMPP_VERSION) {
         return false;
     }
 
@@ -412,15 +414,15 @@ bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *us
     memcpy(buff, user, strlen(user));
     memcpy(buff + strlen(user) + 9, password, strlen(password));
 
-    if (ntohl(pack->timestamp) > 9999999999) {
+    if (ntohl(ccp->timestamp) > 9999999999) {
         return false;
     }
     
-    sprintf(timestamp, "%ud", ntohl(pack->timestamp));
+    sprintf(timestamp, "%ud", ntohl(ccp->timestamp));
     memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
     cmpp_md5(authenticatorSource, buff, len);
 
-    if (memcmp(authenticatorSource, pack->authenticatorSource, 16) != 0) {
+    if (memcmp(authenticatorSource, ccp->authenticatorSource, 16) != 0) {
         return false;
     }
 
