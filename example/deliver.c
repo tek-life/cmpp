@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     /* Cmpp Socket Initialization */
     err = cmpp_init_sp(&cmpp, "192.168.1.100", 7890);
     if (err) {
-        printf("[error] %s\n", cmpp_get_error(cmpp.err));
+        printf("[error] %s\n", cmpp_get_error(err));
         return 0;
     }
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     while (true) {
         cmpp_pack_t pack;
         if (cmpp_recv(&cmpp.sock, &pack, sizeof(pack)) != 0) {
-            cmpp_sleep(1000);
+            sleep(1);
             continue;
         }
 

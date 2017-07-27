@@ -394,7 +394,7 @@ bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user,
         return false;
     }
 
-    cmpp_connect_t *ccp = pack;
+    cmpp_connect_t *ccp = (cmpp_connect_t *)pack;
 
     if (ccp->version != CMPP_VERSION) {
         return false;
