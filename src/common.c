@@ -41,12 +41,7 @@ static const char *cmpp_error_strings[] = {
     "socket cmpp_sock_bind() error"
 };
 
-unsigned int gen_sequence(void) {
-    static unsigned int seq = 1;
-    return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
-}
-
-int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len) {
+int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
     int ret;
     cmpp_head_t *chp;
 
@@ -56,7 +51,7 @@ int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len) {
     	return CMPP_ERR_PROPACKLENERR;
     }
 
-    ret = cmpp_sock_send(&cmpp->sock, (unsigned char *)pack, ntohl(chp->totalLength));
+    ret = cmpp_sock_send(sock, (unsigned char *)pack, ntohl(chp->totalLength));
 
     if (ret != ntohl(chp->totalLength)) {
         return CMPP_ERR_PROPACKLENERR;
@@ -65,18 +60,18 @@ int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len) {
     return 0;
 }
 
-int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len) {
+int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     int ret;
     cmpp_head_t *chp;
     int chpLen, pckLen;
 
     chpLen = sizeof(cmpp_head_t);
-
+    
     if (len < chpLen) {
     	return CMPP_ERR_PROPACKLENERR;
     }
 
-    ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack, chpLen);
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
         if (ret == 0) {
@@ -88,7 +83,7 @@ int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len) {
     chp = (cmpp_head_t *)pack;
     pckLen = ntohl(chp->totalLength);
     
-    ret = cmpp_sock_recv(&cmpp->sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
         return CMPP_ERR_PROPACKLENERR;
     }

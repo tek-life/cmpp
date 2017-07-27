@@ -170,27 +170,23 @@ typedef struct {
 /* Cmpp Session Handle */
 typedef struct {
     bool ok;
-    unsigned int err;
     cmpp_sock_t sock;
     pthread_mutex_t lock;
     unsigned char version;
-    unsigned int (*sequence)(void);
 } cmpp_sp_t;
 
 /* Cmpp Session Handle */
 typedef struct {
-    char *err;
     cmpp_sock_t sock;
     unsigned char version;
     pthread_mutex_t lock;
-    unsigned int (*sequence)(void);
 } cmpp_ismg_t;
 
 extern int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port);
 extern int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port);
 extern int cmpp_connect(cmpp_sp_t *cmpp, const char *user, const char *password);
 
-extern int cmpp_connect_resp(cmpp_sp_t *cmpp);
+extern int cmpp_connect_resp(cmpp_ismg_t *cmpp, unsigned int sequenceId, unsigned char status);
 extern int cmpp_terminate(cmpp_sp_t *cmpp);
 extern int cmpp_terminate_resp(cmpp_sp_t *cmpp);
 extern unsigned int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
@@ -202,9 +198,9 @@ extern int cmpp_active_test(cmpp_sp_t *cmpp);
 extern int cmpp_active_test_resp(cmpp_sp_t *cmpp, unsigned int sequenceId);
 extern bool cmpp_check_connect(cmpp_sp_t *cmpp);
 extern int cmpp_close(cmpp_sp_t *cmpp);
-extern unsigned int gen_sequence(void);
-extern int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len);
-extern int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len);
+extern unsigned int cmpp_sequence(void);
+extern int cmpp_send(cmpp_scok_t *sock, void *pack, size_t len);
+extern int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
 extern int cmpp_free_pack(cmpp_pack_t *pack);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 extern bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *user, const char *password);

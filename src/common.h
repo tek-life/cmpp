@@ -11,9 +11,8 @@
 #include <stdbool.h>
 #include "cmpp.h"
 
-unsigned int gen_sequence(void);
-int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len);
-int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len);
+int cmpp_send(cmpp_scok_t *sock, void *pack, size_t len);
+int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId);
 bool is_cmpp_command(void *pack, size_t len, unsigned int command);
 int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
