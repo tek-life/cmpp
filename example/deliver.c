@@ -26,29 +26,9 @@ int main(int argc, char *argv[]) {
     printf("connect to server successfull\n");
 
     /* Cmpp Login */
-    err = cmpp_connect(&cmpp, "901234", "123456");
-    if (!cmpp.ok) {
-        switch(err) {
-        case -1:
-            printf("[error] %s\n", cmpp_get_error(cmpp.err));
-            break;
-        case 1:
-            printf("[error] protocol packet error\n");
-            break;
-        case 2:
-            printf("[error] illegal source address\n");
-            break;
-        case 3:
-            printf("[error] authentication failed\n");
-            break;
-        case 4:
-            printf("[error] protocol version is too high\n");
-            break;
-        default:
-            printf("[error] unknown error\n");
-            break;
-        }
-        
+    err = cmpp_connect(&cmpp.sock, "901234", "123456");
+    if (err) {
+        fprintf(stderr, "%s\n", cmpp_get_error(err));
         goto exit;
     }
 
@@ -56,7 +36,7 @@ int main(int argc, char *argv[]) {
     
     while (true) {
         cmpp_pack_t pack;
-        if (cmpp_recv(&cmpp, &pack, sizeof(pack)) != 0) {
+        if (cmpp_recv(&cmpp.sock, &pack, sizeof(pack)) != 0) {
             cmpp_sleep(1000);
             continue;
         }
@@ -119,13 +99,13 @@ int main(int argc, char *argv[]) {
     
     /* Cmpp Logout */
     printf("send cmpp_terminate to cmpp server\n");
-    cmpp_terminate(&cmpp);
+    cmpp_terminate(&cmpp.sock);
 
     sleep(1);
 
 exit:
     /* Close Cmpp Socket Connect */
     printf("closing server connection\n");
-    cmpp_close(&cmpp);
+    cmpp_sp_close(&cmpp);
     return 0;
 }

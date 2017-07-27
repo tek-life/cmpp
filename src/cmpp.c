@@ -416,7 +416,7 @@ bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *us
         return false;
     }
     
-    sprintf(timestamp, "%ld", ntohl(pack->timestamp));
+    sprintf(timestamp, "%ud", ntohl(pack->timestamp));
     memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
     cmpp_md5(authenticatorSource, buff, len);
 
