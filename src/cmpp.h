@@ -135,7 +135,9 @@ typedef enum {
     CMPP_ERR_DBWERR,
     CMPP_ERR_PROPACKLENERR,
     CMPP_ERR_LISTPUTERR,
-    CMPP_ERR_NODATA
+    CMPP_ERR_NODATA,
+    CMPP_ERR_CCRSEND,
+    CMPP_ERR_INITSOCKBIND
 } cmpp_error_t;
 
 /* Cmpp Packet Message Header */
@@ -178,13 +180,16 @@ typedef struct {
 /* Cmpp Session Handle */
 typedef struct {
     char *err;
+    cmpp_sock_t sock;
     unsigned char version;
+    pthread_mutex_t lock;
     unsigned int (*sequence)(void);
 } cmpp_ismg_t;
 
 extern int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port);
-extern int cmpp_init_ismg(cmpp_ismg_t *cmpp, void *(*kpthread) (void *));
+extern int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port);
 extern int cmpp_connect(cmpp_sp_t *cmpp, const char *user, const char *password);
+
 extern int cmpp_connect_resp(cmpp_sp_t *cmpp);
 extern int cmpp_terminate(cmpp_sp_t *cmpp);
 extern int cmpp_terminate_resp(cmpp_sp_t *cmpp);
@@ -202,6 +207,7 @@ extern int cmpp_send(cmpp_sp_t *cmpp, void *pack, size_t len);
 extern int cmpp_recv(cmpp_sp_t *cmpp, void *pack, size_t len);
 extern int cmpp_free_pack(cmpp_pack_t *pack);
 extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
+extern bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *user, const char *password);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);

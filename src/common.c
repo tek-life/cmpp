@@ -36,7 +36,9 @@ static const char *cmpp_error_strings[] = {
     "writing leveldb database errors",
     "protocol packet with incorrect length",
     "write list data error",
-    "no data available"
+    "no data available",
+    "send cmpp_connect_resp packet error",
+    "socket cmpp_sock_bind() error"
 };
 
 unsigned int gen_sequence(void) {

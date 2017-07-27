@@ -67,6 +67,47 @@ int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
     return 0;
 }
 
+int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port) {
+    if (!cmpp) {
+        return -1;
+    }
+
+    int err;
+    cmpp->version = CMPP_VERSION;
+    pthread_mutex_init(&cmpp->lock, NULL);
+
+    /* Initialize the socket settings */
+    cmpp_sock_init(&cmpp->sock);
+
+    /* Create a new socket */
+    cmpp->sock.fd = cmpp_sock_create();
+    if (cmpp->sock.fd < 1) {
+        cmpp->err = CMPP_ERR_INITCCS;
+        return CMPP_ERR_INITCCS;
+    }
+
+    /* bind to address */
+    err = cmpp_sock_bind(&cmpp->sock, addr, port, 1024);
+    if (err) {
+        cmpp->err = CMPP_ERR_INITSOCKBIND;
+        return CMPP_ERR_INITSOCKBIND;
+    }
+
+    /* TCP NONBLOCK */
+    cmpp_sock_nonblock(&cmpp->sock, true);
+
+    /* TCP NODELAY */
+    cmpp_sock_tcpnodelay(&cmpp->sock, true);
+
+    /* TCP KEEPAVLIE */
+    cmpp_sock_keepavlie(&cmpp->sock, 30, 5, 3);
+
+    /* Sequence Number Generator */
+    cmpp->sequence = gen_sequence;
+
+    return 0;
+}
+
 int cmpp_close(cmpp_sp_t *cmpp) {
     if (cmpp) {
         cmpp->ok = false;
@@ -151,6 +192,26 @@ int cmpp_connect(cmpp_sp_t *cmpp, const char *user, const char *password) {
     return status;
 }
 
+int cmpp_connect_resp(cmpp_ismg_t *cmpp, unsigned int sequenceId, unsigned char status) {
+    if (!cmpp) {
+        return -1;
+    }
+
+    cmpp_connect_resp_t ccrp;
+    memset(&ccrp, 0, sizeof(ccrp));
+    cmpp_add_header((cmpp_head_t *)&ccrp, sizeof(ccrp), CMPP_CONNECT_RESP, sequenceId);
+
+    ccrp.status = status;
+    ccrp.version = CMPP_VERSION;
+
+    if (cmpp_send(cmpp, &catp, sizeof(catp)) != 0) {
+        cmpp->err = CMPP_ERR_CCRSEND;
+        return 1;
+    }
+
+    return 0;
+}
+
 int cmpp_active_test(cmpp_sp_t *cmpp) {
     if (!cmpp) {
         return -1;
@@ -217,7 +278,7 @@ int cmpp_terminate(cmpp_sp_t *cmpp) {
 }
 
 unsigned int cmpp_submit(cmpp_sp_t *cmpp, const char *phone, const char *message, bool delivery,
-                char *serviceId, char *msgFmt, char *msgSrc) {
+                         char *serviceId, char *msgFmt, char *msgSrc) {
 
     if (!cmpp) {
         return -1;
@@ -340,6 +401,37 @@ int cmpp_deliver_resp(cmpp_sp_t *cmpp, unsigned long sequenceId, unsigned long l
     }
 
     return 0;
+}
+
+bool cmpp_check_authentication(cmpp_connect_t *pack, size_t size, const char *user, const char *password) {
+    if (!pack || size < sizeof(cmpp_connect_t)) {
+        return false;
+    }
+
+    if (pack->version != CMPP_VERSION) {
+        return false;
+    }
+
+    int len;
+    unsigned char buff[128];
+    unsigned char authenticatorSource[16];
+
+    len = strlen(user) + 9 + strlen(password) + 10;
+    if (len > sizeof(buff)) {
+        return false;
+    }
+    
+    memset(buff, 0, sizeof(buff));
+    memcpy(buff, user, strlen(user));
+    memcpy(buff + strlen(user) + 9, password, strlen(password));
+    memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
+    cmpp_md5(authenticatorSource, buff, len);
+
+    if (memcmp(authenticatorSource, pack->authenticatorSource, 16) != 0) {
+        return false;
+    }
+
+    return true;
 }
 
 int cmpp_free_pack(cmpp_pack_t *pack) {
