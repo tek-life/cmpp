@@ -214,7 +214,7 @@ extern void cmpp_pack_add_string(void *pack, const char *data, size_t len, size_
 extern void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size);
 extern void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len);
 extern void cmpp_pack_get_integer(void *pack, size_t offset, void *val, size_t len);
-extern int cmpp_sock_init(cmpp_sock_t *sock);
+extern int cmpp_sock_init(cmpp_sock_t *sock, int fd);
 extern int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable);
 extern int cmpp_sock_tcpnodelay(cmpp_sock_t *sock, bool enable);
 extern int cmpp_sock_keepavlie(cmpp_sock_t *sock, int idle, int interval, int count);
