@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     /* Cmpp Login */
     err = cmpp_connect(&cmpp.sock, "901234", "123456");
     if (err) {
-        fprintf(stderr, "%s\n", cmpp_get_error(err));
+        fprintf(stderr, "cmpp cmpp_connect error\n");
         goto exit;
     }
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     /* Cmpp Send Message */
     err = cmpp_submit(&cmpp.sock, phone, message, delivery, serviceId, msgFmt, msgSrc);
     if (err) {
-        fprintf(stderr, "%s\n", cmpp_get_error(err));
+        fprintf(stderr, "cmpp cmpp_submit error\n");
         goto exit;
     }
     
