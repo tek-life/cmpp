@@ -38,7 +38,8 @@ static const char *cmpp_error_strings[] = {
     "write list data error",
     "no data available",
     "send cmpp_connect_resp packet error",
-    "socket cmpp_sock_bind() error"
+    "socket cmpp_sock_bind() error",
+    "socket cmpp_sock_send() send packet error"
 };
 
 int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
@@ -54,7 +55,12 @@ int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
     ret = cmpp_sock_send(sock, (unsigned char *)pack, ntohl(chp->totalLength));
 
     if (ret != ntohl(chp->totalLength)) {
-        return CMPP_ERR_PROPACKLENERR;
+        switch (ret) {
+        case -1:
+            return -1;
+        default:
+            return CMPP_ERR_SOCKWRITEERR;
+        }
     }
     
     return 0;
@@ -74,10 +80,14 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
-        if (ret == 0) {
+        switch (ret) {
+        case -1:
+            return -1;
+        case 0:
             return CMPP_ERR_NODATA;
+        default:
+            return CMPP_ERR_PROPACKLENERR;
         }
-        return CMPP_ERR_PROPACKLENERR;
     }
 
     chp = (cmpp_head_t *)pack;
@@ -85,9 +95,14 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     
     ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
-        return CMPP_ERR_PROPACKLENERR;
+        switch (ret) {
+        case -1:
+            return -1;
+        default:
+            return CMPP_ERR_PROPACKLENERR;
+        }
     }
-    
+
     return 0;
 }
 

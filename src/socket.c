@@ -66,17 +66,17 @@ int cmpp_sock_bind(cmpp_sock_t *sock, const char *addr, unsigned short port, int
     servaddr.sin_port = htons(port);
 
     if (inet_pton(AF_INET, addr, &servaddr.sin_addr) < 1) {
-        return -1;
+        return 1;
     }
 
     /* socket bind */
     if (bind(sock->fd, (struct sockaddr *)&servaddr, sizeof(struct sockaddr)) == -1) {
-        return -1;
+        return 2;
     }
 
     /* socket listen */
     if (listen(sock->fd, backlog) == -1) {
-        return -1;
+        return 3;
     }
 
     return 0;
@@ -89,14 +89,14 @@ int cmpp_sock_connect(cmpp_sock_t *sock, const char *addr, unsigned short port) 
     servaddr.sin_port = htons(port);
 
     if (inet_pton(AF_INET, addr, &servaddr.sin_addr) < 1) {
-        return -1;
+        return 1;
     }
 
     /* Set connection timeout */
     cmpp_sock_timeout(sock, CMPP_SOCK_SEND, sock->conTimeout);
 
     if (connect(sock->fd, (struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        return -1;
+        return 2;
     }
 
     return 0;
@@ -114,9 +114,16 @@ int cmpp_sock_send(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
         if (ret > 0) {
             offset += ret;
             continue;
-        }
+        } else {
+            if (ret == 0) {
+                return -1;
+            }
 
-        break;
+            if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+                continue;
+            }
+            break;
+        }
     }
 
     pthread_mutex_unlock(&sock->wlock);
@@ -133,14 +140,22 @@ int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
     /* Begin to receive data */
     while (offset < len) {
         if (cmpp_sock_readable(sock->fd, sock->recvTimeout) > 0) {
-          ret = read(sock->fd, buff + offset, len - offset);
-          if (ret > 0) {
-            offset += ret;
-            continue;
-          }
-        }
+            ret = read(sock->fd, buff + offset, len - offset);
+            if (ret > 0) {
+                offset += ret;
+                continue;
+            } else {
+                if (ret == 0) {
+                    return -1;
+                }
 
-        break;
+                if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+                    continue;
+                }
+                
+                break;
+            }
+        }
     }
 
     pthread_mutex_unlock(&sock->rlock);
@@ -158,7 +173,7 @@ int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable) {
     flag = fcntl(sock->fd, F_GETFL, 0);
 
     if (flag == -1) {
-        return -1;
+        return 1;
     }
 
     if (enable) {
@@ -170,7 +185,7 @@ int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable) {
     ret = fcntl(sock->fd, F_SETFL, flag);
 
     if (ret == -1) {
-        return -1;
+        return 2;
     }
 
     return 0;

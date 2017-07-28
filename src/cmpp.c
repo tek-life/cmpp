@@ -117,15 +117,15 @@ int cmpp_ismg_close(cmpp_ismg_t *cmpp) {
 }
 
 int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password) {
-    if (!sock) {
-        return -1;
-    }
-    
+    int err;
     cmpp_connect_t ccp;
     memset(&ccp, 0, sizeof(ccp));
     
     /* Header */
-    cmpp_add_header((cmpp_head_t *)&ccp, sizeof(ccp), CMPP_CONNECT, cmpp_sequence());
+    err = cmpp_add_header((cmpp_head_t *)&ccp, sizeof(ccp), CMPP_CONNECT, cmpp_sequence());
+    if (err) {
+        return 1;
+    }
 
     /* Source_Addr */
     memcpy(ccp.sourceAddr, user, sizeof(ccp.sourceAddr));
@@ -148,126 +148,99 @@ int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password) {
 
     len = strlen(user) + 9 + strlen(password) + strlen(timestamp);
     if (len > sizeof(buff)) {
-        return CMPP_ERR_CONUPTL;
+        return 2;
     }
     
     memset(buff, 0, sizeof(buff));
     memcpy(buff, user, strlen(user));
     memcpy(buff + strlen(user) + 9, password, strlen(password));
     memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, strlen(timestamp));
-    cmpp_md5(ccp.authenticatorSource, buff, len);
+    err = cmpp_md5(ccp.authenticatorSource, buff, len);
+    if (err) {
+        return 3;
+    }
 
     /* Send Cmpp_Connect packet */
-    len = sizeof(ccp);
-
-    if (cmpp_send(sock, &ccp, sizeof(ccp)) != 0) {
-        return CMPP_ERR_CONSCPE;
-    }
-    
-    /* Confirm response status */
-    int status;
-    cmpp_pack_t pack;
-    cmpp_connect_resp_t *ccrp;
-
-    cmpp_recv(sock, &pack, sizeof(pack));
-
-    if (!is_cmpp_command(&pack, sizeof(pack), CMPP_CONNECT_RESP)) {
-        return CMPP_ERR_CONSRPE;
+    err = cmpp_send(sock, &ccp, sizeof(ccp));
+    if (err) {
+        return (err == -1) ? err : 4;
     }
 
-    ccrp = (cmpp_connect_resp_t *)&pack;
-    /* status = ntohl(ccrp->status); */
-    status = ccrp->status;
-
-    return status;
+    return 0;
 }
 
 int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status) {
-    if (!sock) {
-        return -1;
-    }
-
+    int err;
     cmpp_connect_resp_t ccrp;
     memset(&ccrp, 0, sizeof(ccrp));
-    cmpp_add_header((cmpp_head_t *)&ccrp, sizeof(ccrp), CMPP_CONNECT_RESP, sequenceId);
+    err = cmpp_add_header((cmpp_head_t *)&ccrp, sizeof(ccrp), CMPP_CONNECT_RESP, sequenceId);
+    if (err) {
+        return 1;
+    }
 
     ccrp.status = status;
     ccrp.version = CMPP_VERSION;
 
-    if (cmpp_send(sock, &ccrp, sizeof(ccrp)) != 0) {
-        return CMPP_ERR_CCRSEND;
+    err = cmpp_send(sock, &ccrp, sizeof(ccrp));
+    if (err) {
+        return (err == -1) ? err : 2;
     }
 
     return 0;
 }
 
 int cmpp_active_test(cmpp_sock_t *sock) {
-    if (!sock) {
-        return -1;
-    }
-
+    int err;
     cmpp_active_test_t catp;
     memset(&catp, 0, sizeof(catp));
-    cmpp_add_header((cmpp_head_t *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp_sequence());
-
-    if (cmpp_send(sock, &catp, sizeof(catp)) != 0) {
-        return CMPP_ERR_ACTSCPE;
+    err = cmpp_add_header((cmpp_head_t *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp_sequence());
+    if (err) {
+        return 1;
     }
 
-    cmpp_pack_t pack;
-
-    cmpp_recv(sock, &pack, sizeof(pack));
-
-    if (!is_cmpp_command(&pack, sizeof(pack), CMPP_ACTIVE_TEST_RESP)) {
-        return CMPP_ERR_ACTSRPE;
+    err = cmpp_send(sock, &catp, sizeof(catp));
+    if (err == -1) {
+        return (err == -1) ? err : 2;
     }
 
     return 0;
 }
 
 int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
-    if (!sock) {
-        return -1;
-    }
-    
+    int err;
     cmpp_active_test_resp_t catrp;
+    
     memset(&catrp, 0, sizeof(cmpp_active_test_resp_t));
-    cmpp_add_header((cmpp_head_t *)&catrp, sizeof(catrp), CMPP_ACTIVE_TEST_RESP, sequenceId);
+    err = cmpp_add_header((cmpp_head_t *)&catrp, sizeof(catrp), CMPP_ACTIVE_TEST_RESP, sequenceId);
+    if (err) {
+        return 1;
+    }
 
     return 0;
 }
 
 int cmpp_terminate(cmpp_sock_t *sock) {
-    if (!sock) {
-        return -1;
-    }
-
+    int err;
     cmpp_terminate_t ctp;
+
     memset(&ctp, 0, sizeof(ctp));
-    cmpp_add_header((cmpp_head_t *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp_sequence());
-
-    if (cmpp_send(sock, &ctp, sizeof(ctp)) != 0) {
-        return CMPP_ERR_TERSTPE;
+    err = cmpp_add_header((cmpp_head_t *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp_sequence());
+    if (err) {
+        return 1;
     }
 
-    cmpp_pack_t pack;
-
-    cmpp_recv(sock, &pack, sizeof(pack));    
-
-    if (!is_cmpp_command(&pack, sizeof(pack), CMPP_TERMINATE_RESP)) {
-        return CMPP_ERR_TERSRPE;
+    err = cmpp_send(sock, &ctp, sizeof(ctp));
+    if (err) {
+        return (err == -1) ? err : 2;
     }
-    
+
     return 0;
 }
 
 unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool delivery,
                          char *serviceId, char *msgFmt, char *msgSrc) {
 
-    if (!sock) {
-        return -1;
-    }
-
+    int err;
     char buff[140];
     cmpp_head_t *head;
     cmpp_pack_t pack;
@@ -275,7 +248,10 @@ unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *messa
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
-    cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT, cmpp_sequence());
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT, cmpp_sequence());
+    if (err) {
+        return 1;
+    }
 
     offset = sizeof(cmpp_head_t);
     
@@ -349,7 +325,11 @@ unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *messa
 
     /* Msg_Length  */
     memset(buff, 0, sizeof(buff));
-    cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", msgFmt);
+    err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", msgFmt);
+    if (err) {
+        return 2;
+    }
+
     msgLen = cmpp_ucs2count(buff);
     cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
     
@@ -362,28 +342,30 @@ unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *messa
     /* Total_Length */
     head->totalLength = htonl(offset);
 
-    if (cmpp_send(sock, &pack, sizeof(pack)) != 0) {
-        return CMPP_ERR_SUBSSPE;
+    err = cmpp_send(sock, &pack, sizeof(pack));
+    if (err) {
+        return (err == -1) ? err : 3;
     }
 
     return pack.sequenceId;
 }
 
 int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
-    if (!sock) {
-        return -1;
-    }
-
+    int err;
     cmpp_deliver_resp_t cdrp;
 
     memset(&cdrp, 0, sizeof(cdrp));
-    cmpp_add_header((cmpp_head_t *)&cdrp, sizeof(cdrp), CMPP_DELIVER_RESP, sequenceId);
+    err = cmpp_add_header((cmpp_head_t *)&cdrp, sizeof(cdrp), CMPP_DELIVER_RESP, sequenceId);
+    if (err) {
+        return 1;
+    }
 
     cdrp.msgId = msgId;
     cdrp.result = result;
 
-    if (cmpp_send(sock, &cdrp, sizeof(cdrp)) != 0) {
-        return CMPP_ERR_DELSPFE;
+    err = cmpp_send(sock, &cdrp, sizeof(cdrp));
+    if (err) {
+        return (err == -1) ? err : 2;
     }
 
     return 0;

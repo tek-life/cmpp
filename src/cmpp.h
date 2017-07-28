@@ -137,7 +137,8 @@ typedef enum {
     CMPP_ERR_LISTPUTERR,
     CMPP_ERR_NODATA,
     CMPP_ERR_CCRSEND,
-    CMPP_ERR_INITSOCKBIND
+    CMPP_ERR_INITSOCKBIND,
+    CMPP_ERR_SOCKWRITEERR
 } cmpp_error_t;
 
 /* Cmpp Packet Message Header */
