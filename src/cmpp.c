@@ -29,24 +29,24 @@ int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
         return -1;
     }
 
-    int err;
+    int fd, err;
     cmpp->ok = false;
     cmpp->version = CMPP_VERSION;
     pthread_mutex_init(&cmpp->lock, NULL);
 
-    /* Initialize the socket settings */
-    cmpp_sock_init(&cmpp->sock);
-
     /* Create a new socket */
-    cmpp->sock.fd = cmpp_sock_create();
-    if (cmpp->sock.fd < 1) {
-        return CMPP_ERR_INITCCS;
+    fd = cmpp_sock_create();
+    if (fd < 1) {
+        return 1;
     }
+
+    /* Initialize the socket settings */
+    cmpp_sock_init(&cmpp->sock, fd);
 
     /* Connect to server */
     err = cmpp_sock_connect(&cmpp->sock, host, port);
     if (err) {
-        return CMPP_ERR_INITCCTS;
+        return 2;
     }
 
     /* TCP NONBLOCK */
@@ -66,23 +66,23 @@ int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port) {
         return -1;
     }
 
-    int err;
+    int fd, err;
     cmpp->version = CMPP_VERSION;
     pthread_mutex_init(&cmpp->lock, NULL);
 
-    /* Initialize the socket settings */
-    cmpp_sock_init(&cmpp->sock);
-
     /* Create a new socket */
-    cmpp->sock.fd = cmpp_sock_create();
-    if (cmpp->sock.fd < 1) {
-        return CMPP_ERR_INITCCS;
+    fd = cmpp_sock_create();
+    if (fd < 1) {
+        return 1;
     }
+    
+    /* Initialize the socket settings */
+    cmpp_sock_init(&cmpp->sock, fd);
 
     /* bind to address */
     err = cmpp_sock_bind(&cmpp->sock, addr, port, 1024);
     if (err) {
-        return CMPP_ERR_INITSOCKBIND;
+        return 2;
     }
 
     /* TCP NONBLOCK */

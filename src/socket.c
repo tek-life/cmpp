@@ -22,7 +22,8 @@
 #include <pthread.h>
 #include "socket.h"
 
-int cmpp_sock_init(cmpp_sock_t *sock) {
+int cmpp_sock_init(cmpp_sock_t *sock, int fd) {
+    sock->fd = fd;
     sock->conTimeout = 3000;
     sock->sendTimeout = 50;
     sock->recvTimeout = 50;
