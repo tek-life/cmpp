@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     printf("connect to %s server successfull\n", host);
 
     /* Cmpp Login */
-    err = cmpp_connect(&cmpp.sock, "901234", "123456");
+    err = cmpp_connect(&cmpp.sock, password, password);
     if (err) {
         fprintf(stderr, "send cmpp_connect error\n");
         goto exit;
@@ -58,19 +58,19 @@ int main(int argc, char *argv[]) {
             printf("cmpp login successfull\n");
             break;
         case 1:
-            lamb_errlog(config.logfile, "Incorrect protocol packets", 0);
+            printf("Incorrect protocol packets\n");
             return -1;
         case 2:
-            lamb_errlog(config.logfile, "Illegal source address", 0);
+            printf("Illegal source address\n");
             return -1;
         case 3:
-            lamb_errlog(config.logfile, "Authenticator failed", 0);
+            printf("Authenticator failed\n");
             return -1;
         case 4:
-            lamb_errlog(config.logfile, "The protocol version is too high", 0);
+            printf("The protocol version is too high\n");
             return -1;
         default:
-            lamb_errlog(config.logfile, "Unknown error", 0);
+            printf("Unknown error\n");
             return -1;
         }
     } else {

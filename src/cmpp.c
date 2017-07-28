@@ -438,7 +438,7 @@ bool cmpp_check_connect(cmpp_sock_t *sock) {
     pthread_mutex_unlock(&sock->wlock);
     pthread_mutex_unlock(&sock->rlock);
     
-    if (!is_cmpp_command(&pack, sizeof(cmpp_pack_t), CMPP_ACTIVE_TEST_RESP)) {
+    if (!cmpp_check_method(&pack, sizeof(cmpp_pack_t), CMPP_ACTIVE_TEST_RESP)) {
         return false;
     }
 
