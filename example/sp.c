@@ -13,26 +13,70 @@ int main(int argc, char *argv[]) {
     
     int err;
     cmpp_sp_t cmpp;
-
-    signal(SIGPIPE, SIG_IGN);
+    cmpp_pack_t pack;
     
+    signal(SIGPIPE, SIG_IGN);
+
+    char *host = "192.168.1.100";
+    int port = 7890;
+    char *user = "901234";
+    char *password = "123456";
+
     /* Cmpp Socket Initialization */
-    err = cmpp_init_sp(&cmpp, "192.168.1.100", 7890);
+    err = cmpp_init_sp(&cmpp, host, port);
     if (err) {
-        printf("[error] %s\n", cmpp_get_error(err));
-        return 0;
+        printf("can't connect to %s server\n", host);
+        return -1;
     }
 
-    printf("connect to server successfull\n");
+    printf("connect to %s server successfull\n", host);
 
     /* Cmpp Login */
     err = cmpp_connect(&cmpp.sock, "901234", "123456");
     if (err) {
-        fprintf(stderr, "cmpp cmpp_connect error\n");
+        fprintf(stderr, "send cmpp_connect error\n");
         goto exit;
     }
 
-    printf("cmpp connect successfull\n");
+    /* check login status */
+    err = cmpp_recv(&cmpp.sock, &pack, sizeof(pack));
+    if (err) {
+        if (err == -1) {
+            printf("close connection be from server\n");
+            return -1;
+        }
+
+        printf("cmpp cmpp_recv() failed\n");
+        return -1;
+    }
+
+    if (cmpp_check_method(&pack, sizeof(pack), CMPP_CONNECT_RESP)) {
+        unsigned char status;
+        cmpp_pack_get_integer(&pack, cmpp_connect_resp_status, &status, 1);
+        switch (status) {
+        case 0:
+            printf("cmpp login successfull\n");
+            break;
+        case 1:
+            lamb_errlog(config.logfile, "Incorrect protocol packets", 0);
+            return -1;
+        case 2:
+            lamb_errlog(config.logfile, "Illegal source address", 0);
+            return -1;
+        case 3:
+            lamb_errlog(config.logfile, "Authenticator failed", 0);
+            return -1;
+        case 4:
+            lamb_errlog(config.logfile, "The protocol version is too high", 0);
+            return -1;
+        default:
+            lamb_errlog(config.logfile, "Unknown error", 0);
+            return -1;
+        }
+    } else {
+        printf("The server response packet cannot be resolved\n");
+        return -1;
+    }
     
     sleep(1);
 
@@ -52,7 +96,7 @@ int main(int argc, char *argv[]) {
     char *msgFmt = "UCS-2";
 
     /* Enterprise Number */
-    char *msgSrc = "901234";
+    char *msgSrc = user;
 
     /* Cmpp Send Message */
     err = cmpp_submit(&cmpp.sock, phone, message, delivery, serviceId, msgFmt, msgSrc);

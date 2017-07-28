@@ -378,10 +378,6 @@ bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user,
 
     cmpp_connect_t *ccp = (cmpp_connect_t *)pack;
 
-    if (ccp->version != CMPP_VERSION) {
-        return false;
-    }
-
     int len;
     char timestamp[11];
     unsigned char buff[128];
@@ -400,7 +396,7 @@ bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user,
         return false;
     }
     
-    sprintf(timestamp, "%ud", ntohl(ccp->timestamp));
+    sprintf(timestamp, "%010u", ntohl(ccp->timestamp));
     memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
     cmpp_md5(authenticatorSource, buff, len);
 

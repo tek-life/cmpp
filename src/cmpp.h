@@ -204,7 +204,7 @@ extern unsigned int cmpp_sequence(void);
 extern int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len);
 extern int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
 extern int cmpp_free_pack(cmpp_pack_t *pack);
-extern bool is_cmpp_command(void *pack, size_t len, unsigned int command);
+extern bool cmpp_check_method(void *pack, size_t len, unsigned int command);
 extern bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
@@ -214,6 +214,7 @@ extern void cmpp_pack_add_string(void *pack, const char *data, size_t len, size_
 extern void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size);
 extern void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len);
 extern void cmpp_pack_get_integer(void *pack, size_t offset, void *val, size_t len);
+extern int cmpp_sock_init(cmpp_sock_t *sock);
 extern int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable);
 extern int cmpp_sock_tcpnodelay(cmpp_sock_t *sock, bool enable);
 extern int cmpp_sock_keepavlie(cmpp_sock_t *sock, int idle, int interval, int count);

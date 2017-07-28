@@ -14,7 +14,7 @@
 int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len);
 int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId);
-bool is_cmpp_command(void *pack, size_t len, unsigned int command);
+bool cmpp_check_method(void *pack, size_t len, unsigned int command);
 int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
 size_t cmpp_ucs2count(const char *src);

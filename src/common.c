@@ -118,7 +118,7 @@ int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int com
     return 0;
 }
 
-bool is_cmpp_command(void *pack, size_t len, unsigned int command) {
+bool cmpp_check_method(void *pack, size_t len, unsigned int command) {
     if (pack && len >= sizeof(cmpp_head_t)) {
         cmpp_head_t *chp = (cmpp_head_t *)pack;
         if (ntohl(chp->commandId) == command) {
