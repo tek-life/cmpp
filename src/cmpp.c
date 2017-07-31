@@ -400,15 +400,15 @@ int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId
     return 0;
 }
 
-int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, long long msgId, char *destId, char *serviceId,
-                 unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery, unsigned char msgLength,
-                 unsigned char *msgContent) {
+int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *destId,
+                 char *serviceId, unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery,
+                 unsigned char msgLength, unsigned char *msgContent) {
 
     int err;
-    size_t offset;
     cmpp_pack_t pack;
     cmpp_head_t *head;
-
+    size_t offset, msgLen;
+    
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
     err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, sequenceId);
@@ -419,45 +419,111 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, long long msgId, ch
     offset = sizeof(cmpp_head_t);
     
     /* Msg_Id */
-    cmpp_pack_add_integer(&pack, 0, &offset, 8);
+    cmpp_pack_add_integer(&pack, msgId, &offset, 8);
     
     /* Dest_Id */
-    cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 21);
+    cmpp_pack_add_string(&pack, destId, strlen(destId), &offset, 21);
     
     /* Service_Id */
     cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 10);
     
     /* TP_pid */
-    cmpp_pack_add_integer(&pack, (delivery ? 1 : 0), &offset, 1);
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
 
     /* TP_udhi */
-    cmpp_pack_add_integer(&pack, 1, &offset, 1);
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
-    cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 10);
+    char *tocode = NULL;
+    switch (msgFmt) {
+    case 0:
+        tocode = "ASCII";
+        break;
+    case 8:
+        tocode = "UCS-2";
+        break;
+    case 15:
+        tocode = "GBK";
+        break;
+    default:
+        return 2;
+    }
 
-    /* Src_terminal_Id */
-
-    /* Registered_Delivery */
-
-    /* Msg_Length */
-
-    /* Msg_Content */
-
-    /* Msg_Id */
-
-    /* Stat */
-
-    /* Submit_time */
-
-    /* Done_time */
-
-    /* Dest_terminal_Id */
-
-    /* SMSC_sequence */
-
-    /* Reserved */
+    cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
+    /* Src_terminal_Id */
+    cmpp_pack_add_string(&pack, srcTerminalId, strlen(srcTerminalId), &offset, 21);
+    
+    /* Registered_Delivery */
+    cmpp_pack_add_integer(&pack, registeredDelivery, &offset, 1);
+    
+    /* Msg_Length */
+    cmpp_pack_add_integer(&pack, msgLength, &offset, 1);
+
+    if (registeredDelivery == 0) {
+        char buff[140];
+        memset(buff, 0, sizeof(buff));
+        err = cmpp_conv(msgContent, strlen(msgContent), (char *)buff, sizeof(buff), "UTF-8", tocode);
+        if (err) {
+            return 3;
+        }
+
+        switch (msgFmt) {
+        case 0:
+            msgLen = strlen(msgContent);
+            break;
+        case 8:
+            msgLen = cmpp_ucs2count(buff);
+        case 15:
+            msgLen = strlen(msgContent);
+            break;
+        }
+
+        /* Msg_Length  */
+        cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
+
+        /* Msg_Content */
+        cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
+    } else if (registeredDelivery == 1) {
+        /* Msg_Length  */
+        msgLen = sizeof(cmpp_msg_content_t);
+        cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
+
+        /* Msg_Content */
+        cmpp_msg_content_t msc;
+        msc = (cmpp_msg_content_t *)msgContent;
+
+        /* Msg_Id */
+        cmpp_pack_add_integer(&pack, msc->msgId, &offset, 8);
+        
+        /* Stat */
+        cmpp_pack_add_string(&pack, msc->stat, 7, &offset, 7);
+        
+        /* Submit_time */
+        cmpp_pack_add_string(&pack, msc->submitTime, 10, &offset, 10);
+        
+        /* Done_time */
+        cmpp_pack_add_string(&pack, msc->doneTime, 10, &offset, 10);
+        
+        /* Dest_terminal_Id */
+        cmpp_pack_add_string(&pack, msc->destTerminalId, 21, &offset, 21);
+        
+        /* SMSC_sequence */
+        cmpp_pack_add_integer(&pack, msc->smscSequence, &offset, 4);
+    }
+
+    /* Reserve  */
+    cmpp_pack_add_string(&pack, "0", 1, &offset, 8);
+
+    /* Total_Length */
+    head->totalLength = htonl(offset);
+
+    err = cmpp_send(sock, &pack, offset);
+    if (err) {
+        return (err == -1) ? err : 4;
+    }
+    
+    return 0;
 }
 
 int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
@@ -477,6 +543,19 @@ int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long
     if (err) {
         return (err == -1) ? err : 2;
     }
+
+    return 0;
+}
+
+int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat, unsigned char *submitTime,
+                     unsigned char *doneTime, unsigned char *destTerminalId, unsigned int smscSequence) {
+
+    pack->msgId = msgId;
+    memcpy(pack->stat, stat, 7);
+    memcpy(pack->submitTime, submitTime, 10);
+    memcpy(pack->doneTime, submitTime, 10);
+    memcpy(pack->destTerminalId, destTerminalId, 21);
+    pack->smscSequence = smscSequence;
 
     return 0;
 }
