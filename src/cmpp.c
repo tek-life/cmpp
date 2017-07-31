@@ -237,6 +237,24 @@ int cmpp_terminate(cmpp_sock_t *sock) {
     return 0;
 }
 
+int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
+    int err;
+    cmpp_head_t pack;
+
+    memset(&pack, 0, sizeof(pack));
+    err = cmpp_add_header(&pack, sizeof(cmpp_head_t), CMPP_TERMINATE_RESP, sequenceId);
+    if (err) {
+        return 1;
+    }
+
+    err = cmpp_send(sock, &pack, sizeof(pack));
+    if (err) {
+        return (err == -1) ? err : 2;
+    }
+
+    return 0;
+}
+
 unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool delivery,
                          char *serviceId, char *msgFmt, char *msgSrc) {
 
@@ -348,6 +366,38 @@ unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *messa
     }
 
     return pack.sequenceId;
+}
+
+int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId, unsigned char result) {
+    int err;
+    size_t offset;
+    cmpp_pack_t pack;
+    cmpp_head_t *head;
+
+    memset(&pack, 0, sizeof(pack));
+    head = (cmpp_head_t *)&pack;
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT_RESP, sequenceId);
+    if (err) {
+        return 1;
+    }
+
+    offset = sizeof(cmpp_head_t);
+
+    /* Msg_Id */
+    cmpp_pack_add_integer(&pack, msgId, &offset, 8);
+
+    /* Result */
+    cmpp_pack_add_integer(&pack, result, &offset, 1);
+
+    /* Total_Length */
+    head->totalLength = htonl(offset);
+
+    err = cmpp_send(sock, &pack, sizeof());
+    if (err) {
+        return (err == -1) ? err : 2;
+    }
+
+    return 0;
 }
 
 int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
