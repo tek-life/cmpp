@@ -194,7 +194,7 @@ extern int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *passwor
 extern int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status);
 extern int cmpp_terminate(cmpp_sock_t *sock);
 extern int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId);
-extern unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool delivery,
+extern int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, const char *phone, const char *message, bool delivery,
                        char *serviceId, char *msgFmt, char *msgSrc);
 extern int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId, unsigned char result);
 extern int cmpp_deliver(cmpp_sock_t *sock);
