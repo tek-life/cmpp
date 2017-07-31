@@ -360,7 +360,7 @@ unsigned int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *messa
     /* Total_Length */
     head->totalLength = htonl(offset);
 
-    err = cmpp_send(sock, &pack, sizeof(pack));
+    err = cmpp_send(sock, &pack, offset);
     if (err) {
         return (err == -1) ? err : 3;
     }
@@ -392,7 +392,7 @@ int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId
     /* Total_Length */
     head->totalLength = htonl(offset);
 
-    err = cmpp_send(sock, &pack, sizeof());
+    err = cmpp_send(sock, &pack, offset);
     if (err) {
         return (err == -1) ? err : 2;
     }
