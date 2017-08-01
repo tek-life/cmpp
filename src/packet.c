@@ -5,8 +5,8 @@
  * Update: 2017-05-22
  */
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
  
 void cmpp_pack_add_string(void *pack, unsigned char *data, size_t len, size_t *offset, size_t size) {
     if (!pack) {

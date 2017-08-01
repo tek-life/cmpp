@@ -12,6 +12,13 @@
 
 #pragma pack(1)
 
+/* Cmpp Packet Message Header */
+typedef struct {
+    unsigned int totalLength;
+    unsigned int commandId;
+    unsigned int sequenceId;
+} cmpp_head_t;
+
 /* CMPP_CONNECT Message Packet (SP -> ISMG) */
 typedef struct {
     unsigned int totalLength;
@@ -22,7 +29,6 @@ typedef struct {
     unsigned char version;
     unsigned int timestamp;
 } cmpp_connect_t;
-
 
 /* CMPP_CONNECT Message Packet (ISMG -> SP) */
 typedef struct {

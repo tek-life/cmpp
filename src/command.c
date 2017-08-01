@@ -22,99 +22,7 @@
 #include "socket.h"
 #include "packet.h"
 #include "common.h"
-#include "cmpp.h"
-
-int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
-    if (!cmpp) {
-        return -1;
-    }
-
-    int fd, err;
-    cmpp->ok = false;
-    cmpp->version = CMPP_VERSION;
-    pthread_mutex_init(&cmpp->lock, NULL);
-
-    /* Create a new socket */
-    fd = cmpp_sock_create();
-    if (fd < 1) {
-        return 1;
-    }
-
-    /* Initialize the socket settings */
-    cmpp_sock_init(&cmpp->sock, fd);
-
-    /* Connect to server */
-    err = cmpp_sock_connect(&cmpp->sock, host, port);
-    if (err) {
-        return 2;
-    }
-
-    /* TCP NONBLOCK */
-    cmpp_sock_nonblock(&cmpp->sock, true);
-
-    /* TCP NODELAY */
-    cmpp_sock_tcpnodelay(&cmpp->sock, true);
-
-    /* TCP KEEPAVLIE */
-    cmpp_sock_keepavlie(&cmpp->sock, 30, 5, 3);
-
-    return 0;
-}
-
-int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port) {
-    if (!cmpp) {
-        return -1;
-    }
-
-    int fd, err;
-    cmpp->version = CMPP_VERSION;
-    pthread_mutex_init(&cmpp->lock, NULL);
-
-    /* Create a new socket */
-    fd = cmpp_sock_create();
-    if (fd < 1) {
-        return 1;
-    }
-    
-    /* Initialize the socket settings */
-    cmpp_sock_init(&cmpp->sock, fd);
-
-    /* bind to address */
-    err = cmpp_sock_bind(&cmpp->sock, addr, port, 1024);
-    if (err) {
-        return 2;
-    }
-
-    /* TCP NONBLOCK */
-    cmpp_sock_nonblock(&cmpp->sock, true);
-
-    /* TCP NODELAY */
-    cmpp_sock_tcpnodelay(&cmpp->sock, true);
-
-    /* TCP KEEPAVLIE */
-    cmpp_sock_keepavlie(&cmpp->sock, 30, 5, 3);
-
-    return 0;
-}
-
-int cmpp_sp_close(cmpp_sp_t *cmpp) {
-    if (cmpp) {
-        cmpp->ok = false;
-        cmpp_sock_close(&cmpp->sock);
-        return 0;
-    }
-
-    return -1;
-}
-
-int cmpp_ismg_close(cmpp_ismg_t *cmpp) {
-    if (cmpp) {
-        cmpp_sock_close(&cmpp->sock);
-        return 0;
-    }
-
-    return -1;
-}
+#include "command.h"
 
 int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password) {
     int err;
@@ -490,7 +398,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
         cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
 
         /* Msg_Content */
-        cmpp_msg_content_t msc;
+        cmpp_msg_content_t *msc;
         msc = (cmpp_msg_content_t *)msgContent;
 
         /* Msg_Id */
@@ -547,94 +455,4 @@ int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long
     return 0;
 }
 
-int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat, unsigned char *submitTime,
-                     unsigned char *doneTime, unsigned char *destTerminalId, unsigned int smscSequence) {
 
-    pack->msgId = msgId;
-    memcpy(pack->stat, stat, 7);
-    memcpy(pack->submitTime, submitTime, 10);
-    memcpy(pack->doneTime, submitTime, 10);
-    memcpy(pack->destTerminalId, destTerminalId, 21);
-    pack->smscSequence = smscSequence;
-
-    return 0;
-}
-
-bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password) {
-    if (!pack || size < sizeof(cmpp_connect_t)) {
-        return false;
-    }
-
-    cmpp_connect_t *ccp = (cmpp_connect_t *)pack;
-
-    int len;
-    char timestamp[11];
-    unsigned char buff[128];
-    unsigned char authenticatorSource[16];
-
-    len = strlen(user) + 9 + strlen(password) + 10;
-    if (len > sizeof(buff)) {
-        return false;
-    }
-    
-    memset(buff, 0, sizeof(buff));
-    memcpy(buff, user, strlen(user));
-    memcpy(buff + strlen(user) + 9, password, strlen(password));
-
-    if (ntohl(ccp->timestamp) > 9999999999) {
-        return false;
-    }
-    
-    sprintf(timestamp, "%010u", ntohl(ccp->timestamp));
-    memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
-    cmpp_md5(authenticatorSource, buff, len);
-
-    if (memcmp(authenticatorSource, ccp->authenticatorSource, 16) != 0) {
-        return false;
-    }
-
-    return true;
-}
-
-int cmpp_free_pack(cmpp_pack_t *pack) {
-    if (pack == NULL) {
-        return -1;
-    }
-    
-    free(pack);
-    pack = NULL;
-
-    return 0;
-}
-
-bool cmpp_check_connect(cmpp_sock_t *sock) {
-    if (!sock) {
-        return false;
-    }
-
-    cmpp_pack_t pack;
-    pthread_mutex_lock(&sock->wlock);
-    pthread_mutex_lock(&sock->rlock);
-    
-    if (cmpp_active_test(sock) != 0) {
-        return false;
-    }
-
-    if (cmpp_recv(sock, &pack, sizeof(cmpp_pack_t)) != 0) {
-        return false;
-    }
-
-    pthread_mutex_unlock(&sock->wlock);
-    pthread_mutex_unlock(&sock->rlock);
-    
-    if (!cmpp_check_method(&pack, sizeof(cmpp_pack_t), CMPP_ACTIVE_TEST_RESP)) {
-        return false;
-    }
-
-    return true;
-}
-
-unsigned int cmpp_sequence(void) {
-    static unsigned int seq = 1;
-    return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
-}

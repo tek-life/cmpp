@@ -17,30 +17,99 @@
 #include <iconv.h>
 #include "packet.h"
 #include "socket.h"
-#include "cmpp.h"
+#include "comomn.h"
 
-static const char *cmpp_error_strings[] = {
-    "operation completed successfully"
-    "can't create socket",
-    "can't connect to remote server",
-    "user or password maximum length exceeded",
-    "send cmpp_connect packet failed",
-    "receive cmpp_connect_resp packet error",
-    "send cmpp_active_test packet failed",
-    "receive cmpp_active_test_resp packet error",
-    "send cmpp_terminate packet failed",
-    "receive cmpp_terminate_resp packet error",
-    "send cmpp_submit packet failed",
-    "receive cmpp_submit_resp packet error",
-    "send cmpp_deliver_resp packet failed",
-    "writing leveldb database errors",
-    "protocol packet with incorrect length",
-    "write list data error",
-    "no data available",
-    "send cmpp_connect_resp packet error",
-    "socket cmpp_sock_bind() error",
-    "socket cmpp_sock_send() send packet error"
-};
+int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
+    if (!cmpp) {
+        return -1;
+    }
+
+    int fd, err;
+    cmpp->ok = false;
+    cmpp->version = CMPP_VERSION;
+    pthread_mutex_init(&cmpp->lock, NULL);
+
+    /* Create a new socket */
+    fd = cmpp_sock_create();
+    if (fd < 1) {
+        return 1;
+    }
+
+    /* Initialize the socket settings */
+    cmpp_sock_init(&cmpp->sock, fd);
+
+    /* Connect to server */
+    err = cmpp_sock_connect(&cmpp->sock, host, port);
+    if (err) {
+        return 2;
+    }
+
+    /* TCP NONBLOCK */
+    cmpp_sock_nonblock(&cmpp->sock, true);
+
+    /* TCP NODELAY */
+    cmpp_sock_tcpnodelay(&cmpp->sock, true);
+
+    /* TCP KEEPAVLIE */
+    cmpp_sock_keepavlie(&cmpp->sock, 30, 5, 3);
+
+    return 0;
+}
+
+int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port) {
+    if (!cmpp) {
+        return -1;
+    }
+
+    int fd, err;
+    cmpp->version = CMPP_VERSION;
+    pthread_mutex_init(&cmpp->lock, NULL);
+
+    /* Create a new socket */
+    fd = cmpp_sock_create();
+    if (fd < 1) {
+        return 1;
+    }
+    
+    /* Initialize the socket settings */
+    cmpp_sock_init(&cmpp->sock, fd);
+
+    /* bind to address */
+    err = cmpp_sock_bind(&cmpp->sock, addr, port, 1024);
+    if (err) {
+        return 2;
+    }
+
+    /* TCP NONBLOCK */
+    cmpp_sock_nonblock(&cmpp->sock, true);
+
+    /* TCP NODELAY */
+    cmpp_sock_tcpnodelay(&cmpp->sock, true);
+
+    /* TCP KEEPAVLIE */
+    cmpp_sock_keepavlie(&cmpp->sock, 30, 5, 3);
+
+    return 0;
+}
+
+int cmpp_sp_close(cmpp_sp_t *cmpp) {
+    if (cmpp) {
+        cmpp->ok = false;
+        cmpp_sock_close(&cmpp->sock);
+        return 0;
+    }
+
+    return -1;
+}
+
+int cmpp_ismg_close(cmpp_ismg_t *cmpp) {
+    if (cmpp) {
+        cmpp_sock_close(&cmpp->sock);
+        return 0;
+    }
+
+    return -1;
+}
 
 int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
     int ret;
@@ -179,4 +248,96 @@ const char *cmpp_get_error(cmpp_error_t code) {
     }
     
     return error;
+}
+
+int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat, unsigned char *submitTime,
+                     unsigned char *doneTime, unsigned char *destTerminalId, unsigned int smscSequence) {
+
+    pack->msgId = msgId;
+    memcpy(pack->stat, stat, 7);
+    memcpy(pack->submitTime, submitTime, 10);
+    memcpy(pack->doneTime, submitTime, 10);
+    memcpy(pack->destTerminalId, destTerminalId, 21);
+    pack->smscSequence = smscSequence;
+
+    return 0;
+}
+
+bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password) {
+    if (!pack || size < sizeof(cmpp_connect_t)) {
+        return false;
+    }
+
+    cmpp_connect_t *ccp = (cmpp_connect_t *)pack;
+
+    int len;
+    char timestamp[11];
+    unsigned char buff[128];
+    unsigned char authenticatorSource[16];
+
+    len = strlen(user) + 9 + strlen(password) + 10;
+    if (len > sizeof(buff)) {
+        return false;
+    }
+    
+    memset(buff, 0, sizeof(buff));
+    memcpy(buff, user, strlen(user));
+    memcpy(buff + strlen(user) + 9, password, strlen(password));
+
+    if (ntohl(ccp->timestamp) > 9999999999) {
+        return false;
+    }
+    
+    sprintf(timestamp, "%010u", ntohl(ccp->timestamp));
+    memcpy(buff + strlen(user) + 9 + strlen(password), timestamp, 10);
+    cmpp_md5(authenticatorSource, buff, len);
+
+    if (memcmp(authenticatorSource, ccp->authenticatorSource, 16) != 0) {
+        return false;
+    }
+
+    return true;
+}
+
+int cmpp_free_pack(cmpp_pack_t *pack) {
+    if (pack == NULL) {
+        return -1;
+    }
+    
+    free(pack);
+    pack = NULL;
+
+    return 0;
+}
+
+bool cmpp_check_connect(cmpp_sock_t *sock) {
+    if (!sock) {
+        return false;
+    }
+
+    cmpp_pack_t pack;
+    pthread_mutex_lock(&sock->wlock);
+    pthread_mutex_lock(&sock->rlock);
+    
+    if (cmpp_active_test(sock) != 0) {
+        return false;
+    }
+
+    if (cmpp_recv(sock, &pack, sizeof(cmpp_pack_t)) != 0) {
+        return false;
+    }
+
+    pthread_mutex_unlock(&sock->wlock);
+    pthread_mutex_unlock(&sock->rlock);
+    
+    if (!cmpp_check_method(&pack, sizeof(cmpp_pack_t), CMPP_ACTIVE_TEST_RESP)) {
+        return false;
+    }
+
+    return true;
+}
+
+unsigned int cmpp_sequence(void) {
+    static unsigned int seq = 1;
+    return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
 }

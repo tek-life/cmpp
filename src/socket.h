@@ -42,4 +42,5 @@ int cmpp_sock_timeout(cmpp_sock_t *sock, int type, long long millisecond);
 int cmpp_sock_readable(int fd, long long millisecond);
 int cmpp_sock_writable(int fd, long long millisecond);
 int cmpp_sock_close(cmpp_sock_t *sock);
+
 #endif

@@ -136,32 +136,6 @@ typedef struct {
     unsigned int smscSequence;
 } cmpp_msg_content_t;
 
-/* Error Code Definition */
-typedef enum {
-    CMPP_STATUS_OK,
-    CMPP_ERR_INITCCS,
-    CMPP_ERR_INITCCTS,
-    CMPP_ERR_INITCBSS,
-    CMPP_ERR_CONUPTL,
-    CMPP_ERR_CONSCPE,
-    CMPP_ERR_CONSRPE,
-    CMPP_ERR_ACTSCPE,
-    CMPP_ERR_ACTSRPE,
-    CMPP_ERR_TERSTPE,
-    CMPP_ERR_TERSRPE,
-    CMPP_ERR_SUBSSPE,
-    CMPP_ERR_SUBSRPE,
-    CMPP_ERR_DELSPFE,
-    CMPP_ERR_SENMAXUNLEN,
-    CMPP_ERR_DBWERR,
-    CMPP_ERR_PROPACKLENERR,
-    CMPP_ERR_LISTPUTERR,
-    CMPP_ERR_NODATA,
-    CMPP_ERR_CCRSEND,
-    CMPP_ERR_INITSOCKBIND,
-    CMPP_ERR_SOCKWRITEERR
-} cmpp_error_t;
-
 /* Cmpp Packet Message Header */
 typedef struct {
     unsigned int totalLength;
@@ -176,8 +150,6 @@ typedef struct {
     unsigned char data[CMPP_PACK_MAX];
 } cmpp_pack_t;
 
-#ifndef _CMPP_SOCKET_H
-
 typedef struct {
     int fd;
     long long conTimeout;
@@ -186,8 +158,6 @@ typedef struct {
     pthread_mutex_t rlock;
     pthread_mutex_t wlock;
 } cmpp_sock_t;
-
-#endif
 
 /* Cmpp Session Handle */
 typedef struct {
