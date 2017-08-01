@@ -307,7 +307,7 @@ int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId
 
 int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *destId,
                  char *serviceId, unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery,
-                 unsigned char msgLength, unsigned char *msgContent) {
+                 unsigned char msgLength, char *msgContent) {
 
     int err;
     cmpp_pack_t pack;
@@ -402,16 +402,16 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
         cmpp_pack_add_integer(&pack, msc->msgId, &offset, 8);
         
         /* Stat */
-        cmpp_pack_add_string(&pack, msc->stat, 7, &offset, 7);
+        cmpp_pack_add_string(&pack, (char *)msc->stat, 7, &offset, 7);
         
         /* Submit_time */
-        cmpp_pack_add_string(&pack, msc->submitTime, 10, &offset, 10);
+        cmpp_pack_add_string(&pack, (char *)msc->submitTime, 10, &offset, 10);
         
         /* Done_time */
-        cmpp_pack_add_string(&pack, msc->doneTime, 10, &offset, 10);
+        cmpp_pack_add_string(&pack, (char *)msc->doneTime, 10, &offset, 10);
         
         /* Dest_terminal_Id */
-        cmpp_pack_add_string(&pack, msc->destTerminalId, 21, &offset, 21);
+        cmpp_pack_add_string(&pack, (char *)msc->destTerminalId, 21, &offset, 21);
         
         /* SMSC_sequence */
         cmpp_pack_add_integer(&pack, msc->smscSequence, &offset, 4);

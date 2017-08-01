@@ -6,6 +6,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <errno.h>
@@ -17,6 +18,7 @@
 #include <iconv.h>
 #include "packet.h"
 #include "socket.h"
+#include "command.h"
 #include "utils.h"
 
 int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
@@ -118,7 +120,7 @@ int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
     chp = (cmpp_head_t *)pack;
 
     if (ntohl(chp->totalLength) > len) {
-    	return CMPP_ERR_PROPACKLENERR;
+    	return 1;
     }
 
     ret = cmpp_sock_send(sock, (unsigned char *)pack, ntohl(chp->totalLength));
@@ -128,7 +130,7 @@ int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
         case -1:
             return -1;
         default:
-            return CMPP_ERR_SOCKWRITEERR;
+            return 2;
         }
     }
     
@@ -143,7 +145,7 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     chpLen = sizeof(cmpp_head_t);
     
     if (len < chpLen) {
-    	return CMPP_ERR_PROPACKLENERR;
+    	return 1;
     }
 
     ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen);
@@ -153,9 +155,9 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
         case -1:
             return -1;
         case 0:
-            return CMPP_ERR_NODATA;
+            return 2;
         default:
-            return CMPP_ERR_PROPACKLENERR;
+            return 3;
         }
     }
 
@@ -168,7 +170,7 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
         case -1:
             return -1;
         default:
-            return CMPP_ERR_PROPACKLENERR;
+            return 4;
         }
     }
 
@@ -239,15 +241,6 @@ size_t cmpp_ucs2count(const char *src) {
     }
 
     return i;
-}
-
-const char *cmpp_get_error(cmpp_error_t code) {
-    const char *error = "unknown error";
-    if ((code >= 0) && (code < (sizeof(cmpp_error_strings) / sizeof(char *)))) {
-        error = cmpp_error_strings[code];
-    }
-    
-    return error;
 }
 
 int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat, unsigned char *submitTime,

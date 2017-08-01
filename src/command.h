@@ -55,7 +55,9 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId);
 int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, const char *phone, const char *message, bool delivery,
                 char *serviceId, char *msgFmt, char *msgSrc);
 int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId, unsigned char result);
-int cmpp_deliver(cmpp_sock_t *sock);
+int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *destId,
+                 char *serviceId, unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery,
+                 unsigned char msgLength, char *msgContent);
 int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
 int cmpp_active_test(cmpp_sock_t *sock);
 int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId);
