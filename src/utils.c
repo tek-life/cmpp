@@ -164,13 +164,17 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     chp = (cmpp_head_t *)pack;
     pckLen = ntohl(chp->totalLength);
     
+    if (pckLen > len) {
+        return 4;
+    }
+
     ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
         switch (ret) {
         case -1:
             return -1;
         default:
-            return 4;
+            return 5;
         }
     }
 
