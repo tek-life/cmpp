@@ -177,14 +177,15 @@ typedef struct {
 extern int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port);
 extern int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port);
 extern int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password);
-
 extern int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status);
 extern int cmpp_terminate(cmpp_sock_t *sock);
 extern int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId);
-extern int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, const char *phone, const char *message, bool delivery,
+extern int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool delivery,
                        char *serviceId, char *msgFmt, char *msgSrc);
-extern int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId, unsigned char result);
-extern int cmpp_deliver(cmpp_sock_t *sock);
+extern int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result);
+extern int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
+                        char *serviceId, unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery,
+                        unsigned char msgLength, char *msgContent);
 extern int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
 extern int cmpp_active_test(cmpp_sock_t *sock);
 extern int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId);
@@ -200,7 +201,6 @@ extern bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
 extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
-extern const char *cmpp_get_error(cmpp_error_t code);
 extern void cmpp_pack_add_string(void *pack, const char *data, size_t len, size_t *offset, size_t size);
 extern void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size);
 extern void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len);
