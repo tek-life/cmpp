@@ -8,7 +8,7 @@
 #ifndef _CMPP_PACKET_H
 #define _CMPP_PACKET_H
 
-#include "string.h"
+#include <string.h>
 
 #pragma pack(1)
 

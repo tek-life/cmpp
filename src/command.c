@@ -19,9 +19,6 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <signal.h>
-#include "socket.h"
-#include "packet.h"
-#include "common.h"
 #include "command.h"
 
 int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password) {

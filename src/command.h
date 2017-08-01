@@ -8,6 +8,11 @@
 #ifndef _CMPP_COMMAND_H
 #define _CMPP_COMMAND_H
 
+#include <stdbool.h>
+#include "socket.h"
+#include "utils.h"
+#include "packet.h"
+
 #define CMPP_VERSION 0x20
 
 /* Cmpp Protocol Command ID */

@@ -5,8 +5,8 @@
  * Update: 2017-07-10
  */
 
-#ifndef _CMPP_COMMON_H
-#define _CMPP_COMMON_H
+#ifndef _CMPP_UTILS_H
+#define _CMPP_UTILS_H
 
 #include <stdbool.h>
 #include "socket.h"

@@ -17,7 +17,7 @@
 #include <iconv.h>
 #include "packet.h"
 #include "socket.h"
-#include "comomn.h"
+#include "utils.h"
 
 int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
     if (!cmpp) {
