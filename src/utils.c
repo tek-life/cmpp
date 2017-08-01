@@ -237,7 +237,7 @@ size_t cmpp_ucs2count(const char *src) {
     int i = 0;
 
     while (i < 140) {
-        if (src[i] + src[i + 1] != 0) {
+        if ((src[i] + src[i + 1]) != 0) {
             i += 2;
         } else {
             break;
@@ -247,8 +247,9 @@ size_t cmpp_ucs2count(const char *src) {
     return i;
 }
 
-int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat, unsigned char *submitTime,
-                     unsigned char *doneTime, unsigned char *destTerminalId, unsigned int smscSequence) {
+int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat,
+                     unsigned char *submitTime, unsigned char *doneTime, unsigned char *destTerminalId,
+                     unsigned int smscSequence) {
 
     pack->msgId = msgId;
     memcpy(pack->stat, stat, 7);
