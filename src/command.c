@@ -160,7 +160,7 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
     return 0;
 }
 
-int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, const char *phone, const char *message, bool delivery,
+int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool delivery,
                          char *serviceId, char *msgFmt, char *msgSrc) {
 
     int err;
@@ -171,7 +171,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, const char *phone, c
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
-    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT, sequenceId);
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT, cmpp_sequence());
     if (err) {
         return 1;
     }
@@ -273,7 +273,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, const char *phone, c
     return 0;
 }
 
-int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId, unsigned char result) {
+int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result) {
     int err;
     size_t offset;
     cmpp_pack_t pack;
@@ -305,7 +305,7 @@ int cmpp_submit_resp(cmpp_sock_t *sock, int sequenceId, unsigned long long msgId
     return 0;
 }
 
-int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *destId,
+int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
                  char *serviceId, unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery,
                  unsigned char msgLength, char *msgContent) {
 
@@ -316,7 +316,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
-    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, sequenceId);
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, cmpp_sequence());
     if (err) {
         return 1;
     }

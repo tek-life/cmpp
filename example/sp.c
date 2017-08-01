@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     printf("connect to %s server successfull\n", host);
 
     /* Cmpp Login */
-    err = cmpp_connect(&cmpp.sock, password, password);
+    err = cmpp_connect(&cmpp.sock, user, password);
     if (err) {
         fprintf(stderr, "send cmpp_connect error\n");
         goto exit;
