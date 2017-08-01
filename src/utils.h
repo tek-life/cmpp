@@ -9,7 +9,17 @@
 #define _CMPP_UTILS_H
 
 #include <stdbool.h>
+#include "packet.h"
 #include "socket.h"
+
+#define CMPP_PACK_MAX 4096
+
+typedef struct {
+    unsigned int totalLength;
+    unsigned int commandId;
+    unsigned int sequenceId;
+    unsigned char data[CMPP_PACK_MAX];
+} cmpp_pack_t;
 
 /* Cmpp Session Handle */
 typedef struct {
