@@ -339,3 +339,17 @@ unsigned int cmpp_sequence(void) {
     static unsigned int seq = 1;
     return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
 }
+
+unsigned long long cmpp_gen_msgid(int mon, int day, int hour, int min, int sec, int gid, int seq) {
+    unsigned long long x = 0ULL;
+
+    x |= ((unsigned long long)mon) << 60;
+    x |= ((unsigned long long)day) << 55;
+    x |= ((unsigned long long)hour) << 50;
+    x |= ((unsigned long long)min) << 44;
+    x |= ((unsigned long long)sec) << 38;
+    x |= ((unsigned long long)gid) << 16;
+    x |= (unsigned long long)seq;
+
+    return x;
+}
