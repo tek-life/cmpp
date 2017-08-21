@@ -204,6 +204,8 @@ extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const
 extern unsigned int cmpp_sequence(void);
 extern unsigned long long cmpp_gen_msgid(int mon, int day, int hour, int min, int sec, int gid, int seq);
 extern void cmpp_pack_add_string(void *pack, const char *data, size_t len, size_t *offset, size_t size);
+extern void cmpp_pack_set_string(void *pack, unsigned char *data, size_t len, size_t offset, size_t size);
+extern void cmpp_pack_set_integer(void *pack, unsigned long long val, size_t offset, size_t size);
 extern void cmpp_pack_add_integer(void *pack, unsigned long long val, size_t *offset, size_t size);
 extern void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len);
 extern void cmpp_pack_get_integer(void *pack, size_t offset, void *val, size_t len);
