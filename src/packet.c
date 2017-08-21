@@ -22,7 +22,7 @@ void cmpp_pack_add_string(void *pack, unsigned char *data, size_t len, size_t *o
     return;
 }
 
-void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size) {
+void cmpp_pack_add_integer(void *pack, unsigned long long val, size_t *offset, size_t size) {
     if (!pack) {
         return;
     }
@@ -31,16 +31,16 @@ void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, s
 
     switch (size) {
     case 1:
-        *((unsigned char *)ptr) = (unsigned char)data;
+        *((unsigned char *)ptr) = (unsigned char)val;
         break;
     case 2:
-        *((unsigned short *)ptr) = (unsigned short)data;
+        *((unsigned short *)ptr) = (unsigned short)val;
         break;
     case 4:
-        *((unsigned int *)ptr) = (unsigned int)data;
+        *((unsigned int *)ptr) = (unsigned int)val;
         break;
     case 8:
-        *((unsigned long int *)ptr) = (unsigned long int)data;
+        *((unsigned long long *)ptr) = (unsigned long int)val;
         break;
     default:
         break;
@@ -81,7 +81,7 @@ void cmpp_pack_get_integer(void *pack, size_t offset, void *val, size_t len) {
         *((unsigned int *)val) = *(unsigned int *)ptr;
         break;
     case 8:
-        *((unsigned long int *)val) = *(unsigned long int *)ptr;
+        *((unsigned long long *)val) = *(unsigned long long *)ptr;
         break;
     default:
         break;
