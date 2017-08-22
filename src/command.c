@@ -217,6 +217,8 @@ int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool 
         mft = 8;
     } else if (strcasecmp(msgFmt, "GBK") == 0) {
         mft  = 15;
+    } else {
+        return 2;
     }
 
     cmpp_pack_add_integer(&pack, mft, &offset, 1);
@@ -250,10 +252,15 @@ int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool 
     memset(buff, 0, sizeof(buff));
     err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", msgFmt);
     if (err) {
-        return 2;
+        return 3;
     }
 
-    msgLen = cmpp_ucs2count(buff);
+    if (mft == 8) {
+        msgLen = cmpp_ucs2count(buff);
+    } else {
+        msgLen = strlen(buff);
+    }
+
     cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
     
     /* Msg_Content */
@@ -267,7 +274,7 @@ int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool 
 
     err = cmpp_send(sock, &pack, offset);
     if (err) {
-        return (err == -1) ? err : 3;
+        return (err == -1) ? err : 4;
     }
 
     return 0;
