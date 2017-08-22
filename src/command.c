@@ -160,7 +160,7 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
     return 0;
 }
 
-int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool delivery,
+int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
                          char *serviceId, char *msgFmt, char *msgSrc) {
 
     int err;
