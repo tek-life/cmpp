@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
  
-void cmpp_pack_add_string(void *pack, unsigned char *val, size_t vallen, size_t *offset, size_t size) {
+void cmpp_pack_add_string(void *pack, char *val, size_t vallen, size_t *offset, size_t size) {
     if (!pack) {
         return;
     }
@@ -51,7 +51,7 @@ void cmpp_pack_add_integer(void *pack, unsigned long long val, size_t *offset, s
     return;
 }
 
-void cmpp_pack_set_string(void *pack, size_t offset, unsigned char *val, size_t vallen, size_t size) {
+void cmpp_pack_set_string(void *pack, size_t offset, char *val, size_t vallen, size_t size) {
     if (!pack) {
         return;
     }
@@ -92,15 +92,15 @@ void cmpp_pack_set_integer(void *pack, size_t offset, unsigned long long val, si
     return;
 }
 
-void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len) {
-    if (!pack || size < (len + 1)) {
+void cmpp_pack_get_string(void *pack, size_t offset, char *val, size_t vallen, size_t len) {
+    if (!pack || vallen < (len + 1)) {
         return;
     }
 
     unsigned char *ptr = (unsigned char *)pack + offset;
 
-    memcpy(buff, ptr, len);
-    *(buff + len + 1) = '\0';
+    memcpy(val, ptr, len);
+    *(val + len + 1) = '\0';
 
     return;
 }
