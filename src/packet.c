@@ -8,15 +8,16 @@
 #include <stdio.h>
 #include <string.h>
  
-void cmpp_pack_add_string(void *pack, unsigned char *data, size_t len, size_t *offset, size_t size) {
+void cmpp_pack_add_string(void *pack, unsigned char *val, size_t vallen, size_t *offset, size_t size) {
     if (!pack) {
         return;
     }
 
+    size_t n;
     unsigned char *ptr = (unsigned char *)pack + *offset;
 
-    size_t n = (len <= size) ? len : size;
-    memcpy(ptr, data, n);
+    n = (vallen <= size) ? vallen : size;
+    memcpy(ptr, val, n);
     *offset += size;
 
     return;
@@ -50,20 +51,21 @@ void cmpp_pack_add_integer(void *pack, unsigned long long val, size_t *offset, s
     return;
 }
 
-void cmpp_pack_set_string(void *pack, unsigned char *data, size_t len, size_t offset, size_t size) {
+void cmpp_pack_set_string(void *pack, size_t offset, unsigned char *val, size_t vallen, size_t size) {
     if (!pack) {
         return;
     }
 
+    size_t n;
     unsigned char *ptr = (unsigned char *)pack + offset;
 
-    size_t n = (len <= size) ? len : size;
-    memcpy(ptr, data, n);
+    n = (vallen <= size) ? vallen : size;
+    memcpy(ptr, val, n);
 
     return;
 }
 
-void cmpp_pack_set_integer(void *pack, unsigned long long val, size_t offset, size_t size) {
+void cmpp_pack_set_integer(void *pack, size_t offset, unsigned long long val, size_t size) {
     if (!pack) {
         return;
     }

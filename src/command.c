@@ -209,7 +209,7 @@ int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool 
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
-    unsigned char mft = 0;
+    unsigned char mft = -1;
 
     if (strcasecmp(msgFmt, "ASCII") == 0) {
         mft = 0;
@@ -217,8 +217,6 @@ int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool 
         mft = 8;
     } else if (strcasecmp(msgFmt, "GBK") == 0) {
         mft  = 15;
-    } else {
-        return 2;
     }
 
     cmpp_pack_add_integer(&pack, mft, &offset, 1);
@@ -246,13 +244,16 @@ int cmpp_submit(cmpp_sock_t *sock, const char *phone, const char *message, bool 
     
     /* Dest_Terminal_Id */
     cmpp_pack_add_string(&pack, phone, strlen(phone), &offset, 21);
-    
 
     /* Msg_Length  */
     memset(buff, 0, sizeof(buff));
-    err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", msgFmt);
-    if (err) {
-        return 3;
+    if (mft != -1) {
+        err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", msgFmt);
+        if (err) {
+            return 3;
+        }
+    } else {
+        memcpy(buff, message, strlen(message));
     }
 
     if (mft == 8) {
