@@ -54,6 +54,6 @@ bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user,
 int cmpp_free_pack(cmpp_pack_t *pack);
 bool cmpp_check_connect(cmpp_sock_t *sock);
 unsigned int cmpp_sequence(void);
-unsigned long long cmpp_gen_msgid(int mon, int day, int hour, int min, int sec, int gid, int seq);
+unsigned long long cmpp_gen_msgid(int mon, int day, int hour, int min, int sec, int gid, unsigned int seq);
 
 #endif
