@@ -381,7 +381,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId, int 
             return 2;
         }
     } else {
-        memcpy(buff, message, strlen(message));
+        memcpy(buff, msgContent, strlen(msgContent));
     }
 
     if (msgFmt == 8) {
@@ -477,7 +477,7 @@ int cmpp_report(cmpp_sock_t *sock, unsigned long long msgId, char *stat, char *s
     cmpp_pack_add_integer(&pack, 60, &offset, 1);
 
     /* Msg_Content -> Msg_Id */
-    cmpp_pack_add_integer(&pack, msc->msgId, &offset, 8);
+    cmpp_pack_add_integer(&pack, msgId, &offset, 8);
     
     /* Msg_Content -> Stat */
     cmpp_pack_add_string(&pack, stat, 7, &offset, 7);
