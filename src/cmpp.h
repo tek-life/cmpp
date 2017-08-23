@@ -181,12 +181,13 @@ extern int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigne
 extern int cmpp_terminate(cmpp_sock_t *sock);
 extern int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId);
 extern int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
-                       char *serviceId, char *msgFmt, char *msgSrc);
+                       char *serviceId, int msgFmt, char *msgSrc);
 extern int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result);
-extern int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
-                        char *serviceId, unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery,
-                        unsigned char msgLength, char *msgContent);
+extern int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId, int msgFmt, char *srcTerminalId,
+                        char *msgContent);
 extern int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
+extern int cmpp_report(cmpp_sock_t *sock, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
+                       char *destTerminalId, unsigned int smscSequence);
 extern int cmpp_active_test(cmpp_sock_t *sock);
 extern int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId);
 extern bool cmpp_check_connect(cmpp_sock_t *sock);

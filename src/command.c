@@ -161,7 +161,7 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
 }
 
 int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
-                         char *serviceId, char *msgFmt, char *msgSrc) {
+                char *serviceId, int msgFmt, char *msgSrc) {
 
     int err;
     char buff[140];
@@ -209,17 +209,20 @@ int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
-    unsigned char mft = -1;
-
-    if (strcasecmp(msgFmt, "ASCII") == 0) {
-        mft = 0;
-    } else if (strcasecmp(msgFmt, "UCS-2") == 0) {
-        mft = 8;
-    } else if (strcasecmp(msgFmt, "GBK") == 0) {
-        mft  = 15;
+    char *tocode = NULL;
+    switch (msgFmt) {
+    case 0:
+        tocode = "ASCII";
+        break;
+    case 8:
+        tocode = "UCS-2";
+        break;
+    case 15:
+        tocode = "GBK";
+        break;
     }
 
-    cmpp_pack_add_integer(&pack, mft, &offset, 1);
+    cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
     /* Msg_Src */
     cmpp_pack_add_string(&pack, msgSrc, strlen(msgSrc), &offset, 6);
@@ -247,8 +250,8 @@ int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
 
     /* Msg_Length  */
     memset(buff, 0, sizeof(buff));
-    if (mft != -1) {
-        err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", msgFmt);
+    if (tocode != NULL) {
+        err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", tocode);
         if (err) {
             return 3;
         }
@@ -256,7 +259,7 @@ int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
         memcpy(buff, message, strlen(message));
     }
 
-    if (mft == 8) {
+    if (msgFmt == 8) {
         msgLen = cmpp_ucs2count(buff);
     } else {
         msgLen = strlen(buff);
@@ -313,14 +316,14 @@ int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long l
     return 0;
 }
 
-int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
-                 char *serviceId, unsigned char msgFmt, char *srcTerminalId, unsigned char registeredDelivery,
-                 unsigned char msgLength, char *msgContent) {
+int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId, int msgFmt, char *srcTerminalId,
+                 char *msgContent) {
 
     int err;
+    size_t offset;
     cmpp_pack_t pack;
     cmpp_head_t *head;
-    size_t offset, msgLen;
+
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
@@ -338,7 +341,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
     cmpp_pack_add_string(&pack, destId, strlen(destId), &offset, 21);
     
     /* Service_Id */
-    cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 10);
+    cmpp_pack_add_string(&pack, "0000000000", 10, &offset, 10);
     
     /* TP_pid */
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
@@ -358,8 +361,6 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
     case 15:
         tocode = "GBK";
         break;
-    default:
-        return 2;
     }
 
     cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
@@ -368,62 +369,32 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
     cmpp_pack_add_string(&pack, srcTerminalId, strlen(srcTerminalId), &offset, 21);
     
     /* Registered_Delivery */
-    cmpp_pack_add_integer(&pack, registeredDelivery, &offset, 1);
-    
-    /* Msg_Length */
-    cmpp_pack_add_integer(&pack, msgLength, &offset, 1);
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
 
-    if (registeredDelivery == 0) {
-        char buff[140];
-        memset(buff, 0, sizeof(buff));
-        err = cmpp_conv(msgContent, strlen(msgContent), (char *)buff, sizeof(buff), "UTF-8", tocode);
+    size_t msgLen;
+    char buff[160];
+
+    memset(buff, 0, sizeof(buff));
+    if (tocode != NULL) {
+        err = cmpp_conv(msgContent, strlen(msgContent), buff, sizeof(buff), "UTF-8", tocode);
         if (err) {
-            return 3;
+            return 2;
         }
-
-        switch (msgFmt) {
-        case 0:
-            msgLen = strlen(msgContent);
-            break;
-        case 8:
-            msgLen = cmpp_ucs2count(buff);
-        case 15:
-            msgLen = strlen(msgContent);
-            break;
-        }
-
-        /* Msg_Length  */
-        cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
-
-        /* Msg_Content */
-        cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
-    } else if (registeredDelivery == 1) {
-        /* Msg_Length  */
-        msgLen = sizeof(cmpp_msg_content_t);
-        cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
-
-        /* Msg_Content */
-        cmpp_msg_content_t *msc;
-        msc = (cmpp_msg_content_t *)msgContent;
-
-        /* Msg_Id */
-        cmpp_pack_add_integer(&pack, msc->msgId, &offset, 8);
-        
-        /* Stat */
-        cmpp_pack_add_string(&pack, (char *)msc->stat, 7, &offset, 7);
-        
-        /* Submit_time */
-        cmpp_pack_add_string(&pack, (char *)msc->submitTime, 10, &offset, 10);
-        
-        /* Done_time */
-        cmpp_pack_add_string(&pack, (char *)msc->doneTime, 10, &offset, 10);
-        
-        /* Dest_terminal_Id */
-        cmpp_pack_add_string(&pack, (char *)msc->destTerminalId, 21, &offset, 21);
-        
-        /* SMSC_sequence */
-        cmpp_pack_add_integer(&pack, msc->smscSequence, &offset, 4);
+    } else {
+        memcpy(buff, message, strlen(message));
     }
+
+    if (msgFmt == 8) {
+        msgLen = cmpp_ucs2count(buff);
+    } else {
+        msgLen = strlen(buff);
+    }
+    
+    /* Msg_Length  */
+    cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
+
+    /* Msg_Content */
+    cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
 
     /* Reserve  */
     cmpp_pack_add_string(&pack, "0", 1, &offset, 8);
@@ -433,7 +404,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId,
 
     err = cmpp_send(sock, &pack, offset);
     if (err) {
-        return (err == -1) ? err : 4;
+        return (err == -1) ? err : 3;
     }
     
     return 0;
@@ -461,3 +432,78 @@ int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long
 }
 
 
+int cmpp_report(cmpp_sock_t *sock, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
+                char *destTerminalId, unsigned int smscSequence) {
+
+    int err;
+    cmpp_pack_t pack;
+    cmpp_head_t *head;
+    size_t offset;
+    
+    memset(&pack, 0, sizeof(pack));
+    head = (cmpp_head_t *)&pack;
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, cmpp_sequence());
+    if (err) {
+        return 1;
+    }
+
+    offset = sizeof(cmpp_head_t);
+    
+    /* Msg_Id */
+    cmpp_pack_add_integer(&pack, msgId, &offset, 8);
+    
+    /* Dest_Id */
+    cmpp_pack_add_string(&pack, destTerminalId, strlen(destTerminalId), &offset, 21);
+    
+    /* Service_Id */
+    cmpp_pack_add_string(&pack, "0000000000", 10, &offset, 10);
+    
+    /* TP_pid */
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
+
+    /* TP_udhi */
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
+
+    /* Msg_Fmt */
+    cmpp_pack_add_integer(&pack, 0, &offset, 1);
+    
+    /* Src_terminal_Id */
+    cmpp_pack_add_string(&pack, destTerminalId, strlen(destTerminalId), &offset, 21);
+    
+    /* Registered_Delivery */
+    cmpp_pack_add_integer(&pack, 1, &offset, 1);
+    
+    /* Msg_Length */
+    cmpp_pack_add_integer(&pack, 60, &offset, 1);
+
+    /* Msg_Content -> Msg_Id */
+    cmpp_pack_add_integer(&pack, msc->msgId, &offset, 8);
+    
+    /* Msg_Content -> Stat */
+    cmpp_pack_add_string(&pack, stat, 7, &offset, 7);
+    
+    /* Msg_Content -> Submit_time */
+    cmpp_pack_add_string(&pack, submitTime, 10, &offset, 10);
+    
+    /* Msg_Content -> Done_time */
+    cmpp_pack_add_string(&pack, doneTime, 10, &offset, 10);
+    
+    /* Msg_Content -> Dest_terminal_Id */
+    cmpp_pack_add_string(&pack, destTerminalId, 21, &offset, 21);
+    
+    /* Msg_Content -> SMSC_sequence */
+    cmpp_pack_add_integer(&pack, smscSequence, &offset, 4);
+
+    /* Reserve  */
+    cmpp_pack_add_string(&pack, "0", 1, &offset, 8);
+
+    /* Total_Length */
+    head->totalLength = htonl(offset);
+
+    err = cmpp_send(sock, &pack, offset);
+    if (err) {
+        return (err == -1) ? err : 2;
+    }
+    
+    return 0;
+}
