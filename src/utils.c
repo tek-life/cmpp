@@ -340,7 +340,7 @@ unsigned int cmpp_sequence(void) {
     return (seq < 0x7fffffff) ? (seq++) : (seq = 1);
 }
 
-unsigned long long cmpp_gen_msgid(int mon, int day, int hour, int min, int sec, int gid, int seq) {
+unsigned long long cmpp_gen_msgid(int mon, int day, int hour, int min, int sec, int gid, unsigned int seq) {
     unsigned long long x = 0ULL;
 
     x |= ((unsigned long long)mon) << 60;
