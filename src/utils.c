@@ -153,7 +153,7 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     	return 1;
     }
 
-    ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen, 0);
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen);
 
     if (ret != chpLen) {
         switch (ret) {
@@ -173,7 +173,7 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
         return 4;
     }
 
-    ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen, 0);
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
     if (ret != (pckLen - chpLen)) {
         switch (ret) {
         case -1:
