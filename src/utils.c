@@ -137,6 +137,11 @@ int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
     return 0;
 }
 
+int cmpp_send_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned long long timeout) {
+    cmpp_sock_setting(sock, CMPP_SOCK_SENDTIMEOUT, timeout);
+    return cmpp_send(sock, pack, len);
+}
+
 int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     int ret;
     cmpp_head_t *chp;
@@ -182,47 +187,8 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
 }
 
 int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned timeout) {
-    int ret;
-    cmpp_head_t *chp;
-    int chpLen, pckLen;
-
-    chpLen = sizeof(cmpp_head_t);
-    
-    if (len < chpLen) {
-    	return 1;
-    }
-
-    ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen, timeout);
-
-    if (ret != chpLen) {
-        switch (ret) {
-        case -1:
-            return -1;
-        case 0:
-            return 2;
-        default:
-            return 3;
-        }
-    }
-
-    chp = (cmpp_head_t *)pack;
-    pckLen = ntohl(chp->totalLength);
-    
-    if (pckLen > len) {
-        return 4;
-    }
-
-    ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen, timeout);
-    if (ret != (pckLen - chpLen)) {
-        switch (ret) {
-        case -1:
-            return -1;
-        default:
-            return 5;
-        }
-    }
-
-    return 0;
+    cmpp_sock_setting(sock, CMPP_SOCK_RECVTIMEOUT, timeout);
+    return cmpp_recv(sock, pack, len);
 }
 
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {

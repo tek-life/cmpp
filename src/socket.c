@@ -139,7 +139,7 @@ int cmpp_sock_send(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
     return offset;
 }
 
-int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len, unsigned long long timeout) {
+int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
     int ret;
     int offset = 0;
 
@@ -147,26 +147,22 @@ int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len, unsigned 
 
     /* Begin to receive data */
     while (offset < len) {
-        if (timeout > 0) {
-            if (cmpp_sock_readable(sock->fd, timeout) < 1) {
+        if (cmpp_sock_readable(sock->fd, sock->recvTimeout) > 0) {
+            ret = read(sock->fd, buff + offset, len - offset);
+            if (ret > 0) {
+                offset += ret;
+                continue;
+            } else {
+                if (ret == 0) {
+                    return -1;
+                }
+
+                if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+                    continue;
+                }
+                
                 break;
             }
-        }
-
-        ret = read(sock->fd, buff + offset, len - offset);
-        if (ret > 0) {
-            offset += ret;
-            continue;
-        } else {
-            if (ret == 0) {
-                return -1;
-            }
-
-            if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
-                continue;
-            }
-                
-            break;
         }
     }
 
