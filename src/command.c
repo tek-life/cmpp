@@ -160,7 +160,7 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
     return 0;
 }
 
-int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
+int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *phone, char *message, bool delivery,
                 char *serviceId, int msgFmt, char *msgSrc) {
 
     int err;
@@ -171,7 +171,7 @@ int cmpp_submit(cmpp_sock_t *sock, char *phone, char *message, bool delivery,
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
-    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT, cmpp_sequence());
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_SUBMIT, sequenceId);
     if (err) {
         return 1;
     }
