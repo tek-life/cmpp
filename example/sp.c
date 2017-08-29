@@ -90,16 +90,16 @@ int main(int argc, char *argv[]) {
     bool delivery = false;
 
     /* Service Code */
-    char *serviceId = "1065860008";
+    char *spcode = "1065860008";
 
     /* Message Character Encoding */
     char *msgFmt = "UCS-2";
 
     /* Enterprise Number */
-    char *msgSrc = user;
+    char *spid = user;
 
     /* Cmpp Send Message */
-    err = cmpp_submit(&cmpp.sock, phone, message, delivery, serviceId, msgFmt, msgSrc);
+    err = cmpp_submit(&cmpp.sock, cmpp_sequence(), spid, spcode, phone, message, msgFmt, delivery);
     if (err) {
         fprintf(stderr, "cmpp cmpp_submit error\n");
         goto exit;
