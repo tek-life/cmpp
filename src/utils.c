@@ -148,7 +148,7 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     	return 1;
     }
 
-    ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen);
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen, 0);
 
     if (ret != chpLen) {
         switch (ret) {
@@ -168,7 +168,51 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
         return 4;
     }
 
-    ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen);
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen, 0);
+    if (ret != (pckLen - chpLen)) {
+        switch (ret) {
+        case -1:
+            return -1;
+        default:
+            return 5;
+        }
+    }
+
+    return 0;
+}
+
+int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned timeout) {
+    int ret;
+    cmpp_head_t *chp;
+    int chpLen, pckLen;
+
+    chpLen = sizeof(cmpp_head_t);
+    
+    if (len < chpLen) {
+    	return 1;
+    }
+
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack, chpLen, timeout);
+
+    if (ret != chpLen) {
+        switch (ret) {
+        case -1:
+            return -1;
+        case 0:
+            return 2;
+        default:
+            return 3;
+        }
+    }
+
+    chp = (cmpp_head_t *)pack;
+    pckLen = ntohl(chp->totalLength);
+    
+    if (pckLen > len) {
+        return 4;
+    }
+
+    ret = cmpp_sock_recv(sock, (unsigned char *)pack + chpLen, pckLen - chpLen, timeout);
     if (ret != (pckLen - chpLen)) {
         switch (ret) {
         case -1:

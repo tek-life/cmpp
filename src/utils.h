@@ -42,6 +42,7 @@ int cmpp_sp_close(cmpp_sp_t *cmpp);
 int cmpp_ismg_close(cmpp_ismg_t *cmpp);
 int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len);
 int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len);
+int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned timeout);
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId);
 bool cmpp_check_method(void *pack, size_t len, unsigned int command);
 int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);

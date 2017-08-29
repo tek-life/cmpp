@@ -34,7 +34,7 @@ int cmpp_sock_create(void);
 int cmpp_sock_bind(cmpp_sock_t *sock, const char *addr, unsigned short port, int backlog);
 int cmpp_sock_connect(cmpp_sock_t *sock, const char *addr, unsigned short port);
 int cmpp_sock_send(cmpp_sock_t *sock, unsigned char *buff, size_t len);
-int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len);
+int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len, unsigned long long timeout);
 int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable);
 int cmpp_sock_tcpnodelay(cmpp_sock_t *sock, bool enable);
 int cmpp_sock_keepavlie(cmpp_sock_t *sock, int idle, int interval, int count);
