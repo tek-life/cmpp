@@ -186,7 +186,7 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
     return 0;
 }
 
-int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned timeout) {
+int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned long long timeout) {
     cmpp_sock_setting(sock, CMPP_SOCK_RECVTIMEOUT, timeout);
     return cmpp_recv(sock, pack, len);
 }
