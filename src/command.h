@@ -51,11 +51,9 @@ int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password);
 int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status);
 int cmpp_terminate(cmpp_sock_t *sock);
 int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId);
-int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *phone, char *message, bool delivery,
-                char *serviceId, int msgFmt, char *msgSrc);
+int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *message, int msgFmt, bool delivery);
 int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result);
-int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId, int msgFmt, char *srcTerminalId,
-                 char *msgContent);
+int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt);
 int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
 int cmpp_active_test(cmpp_sock_t *sock);
 int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId);

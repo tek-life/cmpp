@@ -160,8 +160,7 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
     return 0;
 }
 
-int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *phone, char *message, bool delivery,
-                char *serviceId, int msgFmt, char *msgSrc) {
+int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *message, int msgFmt, bool delivery) {
 
     int err;
     char buff[140];
@@ -194,7 +193,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *phone, char *m
     cmpp_pack_add_integer(&pack, 1, &offset, 1);
     
     /* Service_Id */
-    cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 10);
+    cmpp_pack_add_string(&pack, spcode, strlen(spcode), &offset, 10);
     
     /* Fee_User_Type */
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
@@ -225,7 +224,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *phone, char *m
     cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
     /* Msg_Src */
-    cmpp_pack_add_string(&pack, msgSrc, strlen(msgSrc), &offset, 6);
+    cmpp_pack_add_string(&pack, spid, strlen(spid), &offset, 6);
     
     /* Fee_Type */
     cmpp_pack_add_string(&pack, "02", 2, &offset, 2);
@@ -240,7 +239,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *phone, char *m
     cmpp_pack_add_string(&pack, "0", 1, &offset, 17);
     
     /* Src_Id */
-    cmpp_pack_add_string(&pack, serviceId, strlen(serviceId), &offset, 21);
+    cmpp_pack_add_string(&pack, spcode, strlen(spcode), &offset, 21);
     
     /* DestUsr_Tl */
     cmpp_pack_add_integer(&pack, 1, &offset, 1);
@@ -316,9 +315,7 @@ int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long l
     return 0;
 }
 
-int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId, int msgFmt, char *srcTerminalId,
-                 char *msgContent) {
-
+int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt) {
     int err;
     size_t offset;
     cmpp_pack_t pack;
@@ -338,7 +335,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId, int 
     cmpp_pack_add_integer(&pack, msgId, &offset, 8);
     
     /* Dest_Id */
-    cmpp_pack_add_string(&pack, destId, strlen(destId), &offset, 21);
+    cmpp_pack_add_string(&pack, spcode, strlen(spcode), &offset, 21);
     
     /* Service_Id */
     cmpp_pack_add_string(&pack, "0000000000", 10, &offset, 10);
@@ -366,7 +363,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *destId, int 
     cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
     /* Src_terminal_Id */
-    cmpp_pack_add_string(&pack, srcTerminalId, strlen(srcTerminalId), &offset, 21);
+    cmpp_pack_add_string(&pack, phone, strlen(phone), &offset, 21);
     
     /* Registered_Delivery */
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
