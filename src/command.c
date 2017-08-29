@@ -21,13 +21,13 @@
 #include <signal.h>
 #include "command.h"
 
-int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password) {
+int cmpp_connect(cmpp_sock_t *sock, unsigned int sequenceId, const char *user, const char *password) {
     int err;
     cmpp_connect_t ccp;
     memset(&ccp, 0, sizeof(ccp));
     
     /* Header */
-    err = cmpp_add_header((cmpp_head_t *)&ccp, sizeof(ccp), CMPP_CONNECT, cmpp_sequence());
+    err = cmpp_add_header((cmpp_head_t *)&ccp, sizeof(ccp), CMPP_CONNECT, sequenceId);
     if (err) {
         return 1;
     }
@@ -94,11 +94,11 @@ int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char 
     return 0;
 }
 
-int cmpp_active_test(cmpp_sock_t *sock) {
+int cmpp_active_test(cmpp_sock_t *sock, unsigned int sequenceId) {
     int err;
     cmpp_active_test_t catp;
     memset(&catp, 0, sizeof(catp));
-    err = cmpp_add_header((cmpp_head_t *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, cmpp_sequence());
+    err = cmpp_add_header((cmpp_head_t *)&catp, sizeof(catp), CMPP_ACTIVE_TEST, sequenceId);
     if (err) {
         return 1;
     }
@@ -124,12 +124,12 @@ int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
     return 0;
 }
 
-int cmpp_terminate(cmpp_sock_t *sock) {
+int cmpp_terminate(cmpp_sock_t *sock, unsigned int sequenceId) {
     int err;
     cmpp_terminate_t ctp;
 
     memset(&ctp, 0, sizeof(ctp));
-    err = cmpp_add_header((cmpp_head_t *)&ctp, sizeof(ctp), CMPP_TERMINATE, cmpp_sequence());
+    err = cmpp_add_header((cmpp_head_t *)&ctp, sizeof(ctp), CMPP_TERMINATE, sequenceId);
     if (err) {
         return 1;
     }
@@ -315,7 +315,7 @@ int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long l
     return 0;
 }
 
-int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt) {
+int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt) {
     int err;
     size_t offset;
     cmpp_pack_t pack;
@@ -324,7 +324,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *spcode, char
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
-    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, cmpp_sequence());
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, sequenceId);
     if (err) {
         return 1;
     }
@@ -407,7 +407,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *spcode, char
     return 0;
 }
 
-int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result) {
+int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result) {
     int err;
     cmpp_deliver_resp_t cdrp;
 
@@ -429,7 +429,7 @@ int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long
 }
 
 
-int cmpp_report(cmpp_sock_t *sock, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
+int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
                 char *destTerminalId, unsigned int smscSequence) {
 
     int err;

@@ -176,17 +176,17 @@ typedef struct {
 
 extern int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port);
 extern int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port);
-extern int cmpp_connect(cmpp_sock_t *sock, const char *user, const char *password);
+extern int cmpp_connect(cmpp_sock_t *sock, unsigned int sequenceId, const char *user, const char *password);
 extern int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status);
-extern int cmpp_terminate(cmpp_sock_t *sock);
+extern int cmpp_terminate(cmpp_sock_t *sock, unsigned int sequenceId);
 extern int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId);
 extern int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *message, int msgFmt, bool delivery);
 extern int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result);
-extern int cmpp_deliver(cmpp_sock_t *sock, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt);
+extern int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt);
 extern int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
-extern int cmpp_report(cmpp_sock_t *sock, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
+extern int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
                        char *destTerminalId, unsigned int smscSequence);
-extern int cmpp_active_test(cmpp_sock_t *sock);
+extern int cmpp_active_test(cmpp_sock_t *sock, unsigned int sequenceId);
 extern int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId);
 extern bool cmpp_check_connect(cmpp_sock_t *sock);
 extern int cmpp_sp_close(cmpp_sp_t *cmpp);
