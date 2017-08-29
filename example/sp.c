@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
     char *spcode = "1065860008";
 
     /* Message Character Encoding */
-    char *msgFmt = "UCS-2";
+    int msgFmt = 0;
 
     /* Enterprise Number */
     char *spid = user;
