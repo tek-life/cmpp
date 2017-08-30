@@ -14,10 +14,11 @@ int main(int argc, char *argv[]) {
     int err;
     cmpp_sp_t cmpp;
     cmpp_pack_t pack;
+    unsigned int sequenceId;
     
     signal(SIGPIPE, SIG_IGN);
 
-    char *host = "192.168.1.100";
+    char *host = "127.0.0.1";
     int port = 7890;
     char *user = "901234";
     char *password = "123456";
@@ -32,7 +33,8 @@ int main(int argc, char *argv[]) {
     printf("connect to %s server successfull\n", host);
 
     /* Cmpp Login */
-    err = cmpp_connect(&cmpp.sock, user, password);
+    sequenceId = cmpp_sequence();
+    err = cmpp_connect(&cmpp.sock, sequenceId, user, password);
     if (err) {
         fprintf(stderr, "send cmpp_connect error\n");
         goto exit;
@@ -99,7 +101,8 @@ int main(int argc, char *argv[]) {
     char *spid = user;
 
     /* Cmpp Send Message */
-    err = cmpp_submit(&cmpp.sock, cmpp_sequence(), spid, spcode, phone, message, msgFmt, delivery);
+    sequenceId = cmpp_sequence();
+    err = cmpp_submit(&cmpp.sock, sequenceId, spid, spcode, phone, message, msgFmt, delivery);
     if (err) {
         fprintf(stderr, "cmpp cmpp_submit error\n");
         goto exit;
@@ -110,7 +113,8 @@ int main(int argc, char *argv[]) {
     
     /* Cmpp Logout */
     printf("send cmpp_terminate to cmpp server\n");
-    cmpp_terminate(&cmpp.sock);
+    sequenceId = cmpp_sequence();
+    cmpp_terminate(&cmpp.sock, sequenceId);
 
     sleep(1);
 
