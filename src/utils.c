@@ -324,10 +324,14 @@ bool cmpp_check_connect(cmpp_sock_t *sock) {
     }
 
     cmpp_pack_t pack;
+    unsigned int sequenceId;
+    unsigned int responseId;
+
     pthread_mutex_lock(&sock->wlock);
     pthread_mutex_lock(&sock->rlock);
-    
-    if (cmpp_active_test(sock) != 0) {
+
+    sequenceId = cmpp_sequence();
+    if (cmpp_active_test(sock, sequenceId) != 0) {
         return false;
     }
 
@@ -338,7 +342,12 @@ bool cmpp_check_connect(cmpp_sock_t *sock) {
     pthread_mutex_unlock(&sock->wlock);
     pthread_mutex_unlock(&sock->rlock);
     
-    if (!cmpp_check_method(&pack, sizeof(cmpp_pack_t), CMPP_ACTIVE_TEST_RESP)) {
+    if (!cmpp_check_method(&pack, sizeof(pack), CMPP_ACTIVE_TEST_RESP)) {
+        return false;
+    }
+
+    cmpp_pack_get_integer(&pack, cmpp_sequence_id, &responseId, 4);
+    if (sequenceId != responseId) {
         return false;
     }
 
