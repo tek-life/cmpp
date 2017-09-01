@@ -52,9 +52,6 @@ int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port) {
     /* TCP NODELAY */
     cmpp_sock_tcpnodelay(&cmpp->sock, true);
 
-    /* TCP KEEPAVLIE */
-    cmpp_sock_keepavlie(&cmpp->sock, 30, 5, 3);
-
     return 0;
 }
 
