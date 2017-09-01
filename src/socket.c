@@ -112,26 +112,24 @@ int cmpp_sock_send(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
     /* Start sending data */
     while (offset < len) {
         if (cmpp_sock_writable(sock->fd, sock->sendTimeout) > 0) {
+            ret = write(sock->fd, buff + offset, len - offset);
             if (ret > 0) {
-                ret = write(sock->fd, buff + offset, len - offset);
-                if (ret > 0) {
-                    offset += ret;
-                    continue;
-                } else {
-                    if (ret == 0) {
-                        offset = -1;
-                        break;
-                    }
-
-                    if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
-                        continue;
-                    }
+                offset += ret;
+                continue;
+            } else {
+                if (ret == 0) {
+                    offset = -1;
                     break;
                 }
-            } else {
-                offset = -1;
+
+                if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN) {
+                    continue;
+                }
                 break;
             }
+        } else {
+            offset = -1;
+            break;
         }
     }
 
@@ -164,6 +162,9 @@ int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
                 
                 break;
             }
+        } else {
+            offset = -1;
+            break;
         }
     }
 
