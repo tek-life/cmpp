@@ -174,7 +174,10 @@ int cmpp_sock_recv(cmpp_sock_t *sock, unsigned char *buff, size_t len) {
 }
 
 int cmpp_sock_close(cmpp_sock_t *sock) {
-    return close(sock->fd);
+    close(sock->fd);
+    pthread_mutex_destroy(&sock->rlock);
+    pthread_mutex_destroy(&sock->wlock);
+    return 0;
 }
 
 int cmpp_sock_nonblock(cmpp_sock_t *sock, bool enable) {
