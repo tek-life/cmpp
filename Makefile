@@ -23,7 +23,7 @@ deliver: example/deliver.c
 
 install:
 	install -m 0644 src/cmpp.h /usr/include
-	install -m 0755 libcmpp2.so /lib64
+	install -m 0755 libcmpp2.so /usr/lib64
 
 clean:
 	rm -f src/*.o
