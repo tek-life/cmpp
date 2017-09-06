@@ -22,13 +22,13 @@ deliver: example/deliver.c
 src/command.o: src/command.c src/command.h
 	$(CC) $(CFLAGS) src/command.c -o src/command.o
 
-src/command.o: src/packet.c src/packet.h
+src/packet.o: src/packet.c src/packet.h
 	$(CC) $(CFLAGS) src/packet.c -o src/packet.o
 
-src/command.o: src/socket.c src/socket.h
+src/socket.o: src/socket.c src/socket.h
 	$(CC) $(CFLAGS) src/socket.c -o src/socket.o
 
-src/command.o: src/utils.c src/utils.h
+src/utils.o: src/utils.c src/utils.h
 	$(CC) $(CFLAGS) src/utils.c -o src/utils.o
 
 .PHONY: install clean
