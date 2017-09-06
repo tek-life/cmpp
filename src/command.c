@@ -259,7 +259,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *sp
     }
 
     if (msgFmt == 8) {
-        msgLen = cmpp_ucs2count(buff);
+        msgLen = cmpp_ucs2_strlen(buff);
     } else {
         msgLen = strlen(buff);
     }
@@ -382,7 +382,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
     }
 
     if (msgFmt == 8) {
-        msgLen = cmpp_ucs2count(buff);
+        msgLen = cmpp_ucs2_strlen(buff);
     } else {
         msgLen = strlen(buff);
     }

@@ -240,7 +240,7 @@ int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* 
     return -1;
 }
 
-size_t cmpp_ucs2count(const char *src) {
+size_t cmpp_ucs2_strlen(const char *src) {
     int i = 0;
 
     while (i < 140) {
