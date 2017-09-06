@@ -27,7 +27,7 @@
 
 功能：登录到一个 ISMG 网关服务器
 
-`sock` : SP 客户端 sock 句柄
+`sock` : SP 客户端 socket 句柄
 
 `sequenceId` : CMPP 会话 sequence 序列号，可以使用 `cmpp_sequence` 函数生成
 
