@@ -2,8 +2,7 @@
 
 
 **int cmpp_init_sp(cmpp_sp_t \*cmpp, char \*host, unsigned short port);**
-
-
+--------------------------------------------------------------------------
 功能：创建并初始化一个 SP 客户端
 
 `cmpp` : SP 客户端句柄
@@ -14,7 +13,7 @@
 
 
 **int cmpp_init_ismg(cmpp_ismg_t \*cmpp, const char \*addr, unsigned short port);**
-
+------------------------------------------------------------------------------------
 功能：创建并初始化一个 ISMG 网关服务端
 
 `cmpp` : ISMG 网关句柄
@@ -24,7 +23,7 @@
 `port` : ISMG 监听端口
 
 **int cmpp_connect(cmpp_sock_t \*sock, unsigned int sequenceId, const char \*user, const char \*password);**
-
+-------------------------------------------------------------------------------------------------------------
 功能：登录到一个 ISMG 网关服务器
 
 `sock` : SP 客户端 sock 句柄
