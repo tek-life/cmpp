@@ -161,12 +161,10 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
 }
 
 int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *content, int length, int msgFmt, bool delivery) {
-
     int err;
-    char buff[140];
     cmpp_head_t *head;
     cmpp_pack_t pack;
-    size_t offset, msgLen;
+    size_t offset;
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
@@ -208,19 +206,6 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *sp
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
-    char *tocode = NULL;
-    switch (msgFmt) {
-    case 0:
-        tocode = "ASCII";
-        break;
-    case 8:
-        tocode = "UCS-2";
-        break;
-    case 15:
-        tocode = "GBK";
-        break;
-    }
-
     cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
     /* Msg_Src */
@@ -248,25 +233,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *sp
     cmpp_pack_add_string(&pack, phone, strlen(phone), &offset, 21);
 
     /* Msg_Length  */
-    memset(buff, 0, sizeof(buff));
-    if (tocode != NULL) {
-        err = cmpp_conv(content, length, (char *)buff, sizeof(buff), "UTF-8", tocode);
-        if (err) {
-            return 3;
-        }
-    } else {
-        memcpy(buff, content, length);
-    }
-
-    if (msgFmt == 8) {
-        msgLen = cmpp_ucs2_strlen(buff);
-    } else if (msgFmt == 15) {
-        msgLen = cmpp_gbk_strlen(buff);
-    } else {
-        msgLen = length;
-    }
-
-    cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
+    cmpp_pack_add_integer(&pack, length < 160 ? length : 159, &offset, 1);
     
     /* Msg_Content */
     cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
@@ -349,19 +316,6 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
-    char *tocode = NULL;
-    switch (msgFmt) {
-    case 0:
-        tocode = "ASCII";
-        break;
-    case 8:
-        tocode = "UCS-2";
-        break;
-    case 15:
-        tocode = "GBK";
-        break;
-    }
-
     cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
     /* Src_terminal_Id */
@@ -369,30 +323,9 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
     
     /* Registered_Delivery */
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
-
-    size_t msgLen;
-    char buff[160];
-
-    memset(buff, 0, sizeof(buff));
-    if (tocode != NULL) {
-        err = cmpp_conv(content, length, buff, sizeof(buff), "UTF-8", tocode);
-        if (err) {
-            return 2;
-        }
-    } else {
-        memcpy(buff, content, length);
-    }
-
-    if (msgFmt == 8) {
-        msgLen = cmpp_ucs2_strlen(buff);
-    } else if (msgFmt == 15) {
-        msgLen = cmpp_gbk_strlen(buff);
-    } else {
-        msgLen = length;
-    }
     
     /* Msg_Length  */
-    cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
+    cmpp_pack_add_integer(&pack, length < 160 ? length : 159, &offset, 1);
 
     /* Msg_Content */
     cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
