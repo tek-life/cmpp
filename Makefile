@@ -5,8 +5,8 @@ INCLUDE = -I /usr/local/include
 
 all: libcmpp2.so
 
-libcmpp2.so: src/command.o src/packet.o src/utils.o src/socket.o
-	$(CC) $(CFLAGS) $(INCLUDE) -shared -fPIC src/command.o src/packet.o src/socket.o src/utils.o -o libcmpp2.so
+libcmpp2.so: src/command.c src/command.h src/packet.c src/packet.h src/utils.c src/utils.h src/socket.c src/socket.h
+	$(CC) $(CFLAGS) $(INCLUDE) -shared -fPIC src/command.c src/packet.c src/socket.c src/utils.c -o libcmpp2.so
 
 example: sp ismg deliver
 
@@ -18,18 +18,6 @@ ismg: example/ismg.c
 
 deliver: example/deliver.c
 	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp2 example/deliver.c -o example/deliver
-
-src/command.o: src/command.c src/command.h
-	$(CC) $(CFLAGS) src/command.c -o src/command.o
-
-src/packet.o: src/packet.c src/packet.h
-	$(CC) $(CFLAGS) src/packet.c -o src/packet.o
-
-src/socket.o: src/socket.c src/socket.h
-	$(CC) $(CFLAGS) src/socket.c -o src/socket.o
-
-src/utils.o: src/utils.c src/utils.h
-	$(CC) $(CFLAGS) src/utils.c -o src/utils.o
 
 .PHONY: install clean
 

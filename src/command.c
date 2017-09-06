@@ -20,6 +20,9 @@
 #include <sys/time.h>
 #include <signal.h>
 #include "command.h"
+#include "utils.h"
+#include "packet.h"
+#include "socket.h"
 
 int cmpp_connect(cmpp_sock_t *sock, unsigned int sequenceId, const char *user, const char *password) {
     int err;
