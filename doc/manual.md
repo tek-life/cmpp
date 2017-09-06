@@ -29,7 +29,7 @@
 
 `sock` : SP 客户端 sock 句柄
 
-`sequenceId` : CMPP 会话 sequence 编号，可以使用 `cmpp_sequence` 函数生成
+`sequenceId` : CMPP 会话 sequence 序列号，可以使用 `cmpp_sequence` 函数生成
 
 `user` : ISMG 网关服务商分配的账号
 
