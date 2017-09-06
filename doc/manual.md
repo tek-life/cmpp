@@ -1,7 +1,7 @@
 # China Mobile point to point SMS protocol library 
 
 
-    int cmpp_init_sp(cmpp_sp_t *cmpp, char *host, unsigned short port);
+**int cmpp_init_sp(cmpp_sp_t \*cmpp, char \*host, unsigned short port);**
 
 
 功能：创建并初始化一个 SP 客户端
