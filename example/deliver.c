@@ -6,49 +6,29 @@
 #include "cmpp.h"
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        printf("usage: %s <phone> <message>\n", argv[0]);
-        return 0;
-    }
-    
     int err;
     cmpp_sp_t cmpp;
 
     signal(SIGPIPE, SIG_IGN);
+
+    char *host = "192.168.1.100";
+    int port = 7890;
+    char *user = "901234";
+    char *password = "123456";
     
     /* Cmpp Socket Initialization */
-    err = cmpp_init_sp(&cmpp, "192.168.1.100", 7890);
+    err = cmpp_init_sp(&cmpp, host, port);
     if (err) {
-        printf("[error] %s\n", cmpp_get_error(cmpp.err));
-        return 0;
+        printf("can't connect to %s server\n", host);
+        return -1;
     }
 
     printf("connect to server successfull\n");
 
     /* Cmpp Login */
-    err = cmpp_connect(&cmpp, "901234", "123456");
-    if (!cmpp.ok) {
-        switch(err) {
-        case -1:
-            printf("[error] %s\n", cmpp_get_error(cmpp.err));
-            break;
-        case 1:
-            printf("[error] protocol packet error\n");
-            break;
-        case 2:
-            printf("[error] illegal source address\n");
-            break;
-        case 3:
-            printf("[error] authentication failed\n");
-            break;
-        case 4:
-            printf("[error] protocol version is too high\n");
-            break;
-        default:
-            printf("[error] unknown error\n");
-            break;
-        }
-        
+    err = cmpp_connect(&cmpp.sock, user, password);
+    if (err) {
+        fprintf(stderr, "send cmpp_connect() failed\n");
         goto exit;
     }
 
@@ -56,12 +36,17 @@ int main(int argc, char *argv[]) {
     
     while (true) {
         cmpp_pack_t pack;
-        if (cmpp_recv(&cmpp, &pack, sizeof(pack)) != 0) {
-            cmpp_sleep(1000);
+        int err = cmpp_recv(&cmpp.sock, &pack, sizeof(pack));
+        if (err) {
+            if (err == -1) {
+                printf("connection was disconnected by the remote server\n");
+                return -1;
+            }
+            printf("cmpp cmpp_recv() error\n");
             continue;
         }
 
-        if (is_cmpp_command(&pack, sizeof(pack), CMPP_DELIVER)) {
+        if (cmpp_check_method(&pack, sizeof(pack), CMPP_DELIVER)) {
             unsigned long long msg_id;
             cmpp_pack_get_integer(&pack, 12, &msg_id, 8);
             printf("msg_id: %lld\n", msg_id);
@@ -113,19 +98,21 @@ int main(int argc, char *argv[]) {
             memset(reserved, 0, sizeof(reserved));
             cmpp_pack_get_string(&pack, 77 + msg_length, reserved, sizeof(reserved), 8);
             printf("reserved: %s\n", reserved);
+        } else {
+            printf("the server response packet cannot be resolved\n");
         }
         
     }
     
     /* Cmpp Logout */
     printf("send cmpp_terminate to cmpp server\n");
-    cmpp_terminate(&cmpp);
+    cmpp_terminate(&cmpp.sock);
 
     sleep(1);
 
 exit:
     /* Close Cmpp Socket Connect */
     printf("closing server connection\n");
-    cmpp_close(&cmpp);
+    cmpp_sp_close(&cmpp);
     return 0;
 }

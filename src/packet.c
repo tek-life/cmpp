@@ -5,24 +5,25 @@
  * Update: 2017-05-22
  */
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
  
-void cmpp_pack_add_string(void *pack, unsigned char *data, size_t len, size_t *offset, size_t size) {
+void cmpp_pack_add_string(void *pack, char *val, size_t vallen, size_t *offset, size_t size) {
     if (!pack) {
         return;
     }
 
+    size_t n;
     unsigned char *ptr = (unsigned char *)pack + *offset;
 
-    size_t n = (len <= size) ? len : size;
-    memcpy(ptr, data, n);
+    n = (vallen <= size) ? vallen : size;
+    memcpy(ptr, val, n);
     *offset += size;
 
     return;
 }
 
-void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, size_t size) {
+void cmpp_pack_add_integer(void *pack, unsigned long long val, size_t *offset, size_t size) {
     if (!pack) {
         return;
     }
@@ -31,16 +32,16 @@ void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, s
 
     switch (size) {
     case 1:
-        *((unsigned char *)ptr) = (unsigned char)data;
+        *((unsigned char *)ptr) = (unsigned char)val;
         break;
     case 2:
-        *((unsigned short *)ptr) = (unsigned short)data;
+        *((unsigned short *)ptr) = (unsigned short)val;
         break;
     case 4:
-        *((unsigned int *)ptr) = (unsigned int)data;
+        *((unsigned int *)ptr) = (unsigned int)val;
         break;
     case 8:
-        *((unsigned long int *)ptr) = (unsigned long int)data;
+        *((unsigned long long *)ptr) = (unsigned long int)val;
         break;
     default:
         break;
@@ -50,15 +51,56 @@ void cmpp_pack_add_integer(void *pack, unsigned long int data, size_t *offset, s
     return;
 }
 
-void cmpp_pack_get_string(void *pack, size_t offset, unsigned char *buff, size_t size, size_t len) {
-    if (!pack || size < (len + 1)) {
+void cmpp_pack_set_string(void *pack, size_t offset, char *val, size_t vallen, size_t size) {
+    if (!pack) {
+        return;
+    }
+
+    size_t n;
+    unsigned char *ptr = (unsigned char *)pack + offset;
+
+    n = (vallen <= size) ? vallen : size;
+    memcpy(ptr, val, n);
+
+    return;
+}
+
+void cmpp_pack_set_integer(void *pack, size_t offset, unsigned long long val, size_t size) {
+    if (!pack) {
         return;
     }
 
     unsigned char *ptr = (unsigned char *)pack + offset;
 
-    memcpy(buff, ptr, len);
-    *(buff + len + 1) = '\0';
+    switch (size) {
+    case 1:
+        *((unsigned char *)ptr) = (unsigned char)val;
+        break;
+    case 2:
+        *((unsigned short *)ptr) = (unsigned short)val;
+        break;
+    case 4:
+        *((unsigned int *)ptr) = (unsigned int)val;
+        break;
+    case 8:
+        *((unsigned long long *)ptr) = (unsigned long int)val;
+        break;
+    default:
+        break;
+    }
+
+    return;
+}
+
+void cmpp_pack_get_string(void *pack, size_t offset, char *val, size_t vallen, size_t len) {
+    if (!pack || vallen < (len + 1)) {
+        return;
+    }
+
+    unsigned char *ptr = (unsigned char *)pack + offset;
+
+    memcpy(val, ptr, len);
+    *(val + len + 1) = '\0';
 
     return;
 }
@@ -81,7 +123,7 @@ void cmpp_pack_get_integer(void *pack, size_t offset, void *val, size_t len) {
         *((unsigned int *)val) = *(unsigned int *)ptr;
         break;
     case 8:
-        *((unsigned long int *)val) = *(unsigned long int *)ptr;
+        *((unsigned long long *)val) = *(unsigned long long *)ptr;
         break;
     default:
         break;

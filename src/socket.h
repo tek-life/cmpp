@@ -9,6 +9,7 @@
 #define _CMPP_SOCKET_H
 
 #include <stdbool.h>
+#include <pthread.h>
 
 typedef struct {
     int fd;
@@ -27,7 +28,7 @@ typedef struct {
 #define CMPP_SOCK_SENDTIMEOUT 2
 #define CMPP_SOCK_RECVTIMEOUT 3
 
-int cmpp_sock_init(cmpp_sock_t *sock);
+int cmpp_sock_init(cmpp_sock_t *sock, int fd);
 int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 int cmpp_sock_create(void);
 int cmpp_sock_bind(cmpp_sock_t *sock, const char *addr, unsigned short port, int backlog);
@@ -41,4 +42,5 @@ int cmpp_sock_timeout(cmpp_sock_t *sock, int type, long long millisecond);
 int cmpp_sock_readable(int fd, long long millisecond);
 int cmpp_sock_writable(int fd, long long millisecond);
 int cmpp_sock_close(cmpp_sock_t *sock);
+
 #endif
