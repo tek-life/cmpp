@@ -236,7 +236,7 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *sp
     cmpp_pack_add_integer(&pack, length < 160 ? length : 159, &offset, 1);
     
     /* Msg_Content */
-    cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
+    cmpp_pack_add_string(&pack, content, length, &offset, length);
 
     /* Reserve  */
     cmpp_pack_add_string(&pack, "0", 1, &offset, 8);
@@ -328,7 +328,7 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
     cmpp_pack_add_integer(&pack, length < 160 ? length : 159, &offset, 1);
 
     /* Msg_Content */
-    cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
+    cmpp_pack_add_string(&pack, content, length, &offset, length);
 
     /* Reserve  */
     cmpp_pack_add_string(&pack, "0", 1, &offset, 8);
