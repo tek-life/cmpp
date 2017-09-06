@@ -257,7 +257,7 @@ size_t cmpp_ucs2_strlen(const char *str) {
 size_t cmpp_gbk_strlen(const char *str) {  
     const char *ptr = str;
     while (*ptr) {
-        if ((*ptr < 0) && (*(p + 1) < 0 || *(p + 1) > 63)) {
+        if ((*ptr < 0) && (*(ptr + 1) < 0 || *(ptr + 1) > 63)) {
             str++;
             ptr += 2;
         } else {
