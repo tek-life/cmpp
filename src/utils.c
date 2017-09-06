@@ -265,7 +265,7 @@ size_t cmpp_gbk_strlen(const char *str) {
         }  
     }
 
-    return size_t(ptr - str);
+    return (size_t)(ptr - str);
 }
 
 int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat,
