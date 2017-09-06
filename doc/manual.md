@@ -13,7 +13,7 @@
 `port` : ISMG 网关端口
 
 
-    int **cmpp_init_ismg**(cmpp_ismg_t *cmpp, const char *addr, unsigned short port);
+    int cmpp_init_ismg(cmpp_ismg_t *cmpp, const char *addr, unsigned short port);
 
 功能：创建并初始化一个 ISMG 网关服务端
 
@@ -23,7 +23,17 @@
 
 `port` : ISMG 监听端口
 
-    int **cmpp_connect**(cmpp_sock_t *sock, unsigned int sequenceId, const char *user, const char *password);
+    int cmpp_connect(cmpp_sock_t *sock, unsigned int sequenceId, const char *user, const char *password);
+
+功能：登录到一个 ISMG 网关服务器
+
+`sock` : SP 客户端 sock 句柄
+
+`sequenceId` : CMPP 会话 sequence 编号，可以使用 `cmpp_sequence` 函数生成
+
+`user` : ISMG 网关服务商分配的账号
+
+`password` : ISMG 网关服务商分配的密码
 
 
 - int **cmpp_connect_resp**(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status);
