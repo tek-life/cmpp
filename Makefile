@@ -26,7 +26,7 @@ src/command.o: src/packet.c src/packet.h
 	$(CC) $(CFLAGS) src/packet.c -o src/packet.o
 
 src/command.o: src/socket.c src/socket.h
-	$(CC) $(CFLAGS) src/utils.c -o src/utils.o
+	$(CC) $(CFLAGS) src/socket.c -o src/socket.o
 
 src/command.o: src/utils.c src/utils.h
 	$(CC) $(CFLAGS) src/utils.c -o src/utils.o
