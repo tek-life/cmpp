@@ -240,11 +240,11 @@ int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* 
     return -1;
 }
 
-size_t cmpp_ucs2_strlen(const char *src) {
+size_t cmpp_ucs2_strlen(const char *str) {
     int i = 0;
 
     while (i < 140) {
-        if ((src[i] + src[i + 1]) != 0) {
+        if ((str[i] + str[i + 1]) != 0) {
             i += 2;
         } else {
             break;
@@ -252,6 +252,20 @@ size_t cmpp_ucs2_strlen(const char *src) {
     }
 
     return i;
+}
+
+size_t cmpp_gbk_strlen(const char *str) {  
+    const char *ptr = str;
+    while (*ptr) {
+        if ((*ptr < 0) && (*(p + 1) < 0 || *(p + 1) > 63)) {
+            str++;
+            ptr += 2;
+        } else {
+            ptr++;  
+        }  
+    }
+
+    return size_t(ptr - str);
 }
 
 int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat,
