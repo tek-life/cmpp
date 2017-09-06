@@ -160,7 +160,7 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
     return 0;
 }
 
-int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *message, int msgFmt, bool delivery) {
+int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *content, int length, int msgFmt, bool delivery) {
 
     int err;
     char buff[140];
@@ -250,18 +250,20 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *sp
     /* Msg_Length  */
     memset(buff, 0, sizeof(buff));
     if (tocode != NULL) {
-        err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", tocode);
+        err = cmpp_conv(content, length, (char *)buff, sizeof(buff), "UTF-8", tocode);
         if (err) {
             return 3;
         }
     } else {
-        memcpy(buff, message, strlen(message));
+        memcpy(buff, content, length);
     }
 
     if (msgFmt == 8) {
         msgLen = cmpp_ucs2_strlen(buff);
+    } else if (msgFmt == 15) {
+        msgLen = cmpp_gbk_strlen(buff);
     } else {
-        msgLen = strlen(buff);
+        msgLen = length;
     }
 
     cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
@@ -315,7 +317,7 @@ int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long l
     return 0;
 }
 
-int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt) {
+int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *content, int length, int msgFmt) {
     int err;
     size_t offset;
     cmpp_pack_t pack;
@@ -373,18 +375,20 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
 
     memset(buff, 0, sizeof(buff));
     if (tocode != NULL) {
-        err = cmpp_conv(msgContent, strlen(msgContent), buff, sizeof(buff), "UTF-8", tocode);
+        err = cmpp_conv(content, length, buff, sizeof(buff), "UTF-8", tocode);
         if (err) {
             return 2;
         }
     } else {
-        memcpy(buff, msgContent, strlen(msgContent));
+        memcpy(buff, content, length);
     }
 
     if (msgFmt == 8) {
         msgLen = cmpp_ucs2_strlen(buff);
+    } else if (msgFmt == 15) {
+        msgLen = cmpp_gbk_strlen(buff);
     } else {
-        msgLen = strlen(buff);
+        msgLen = length;
     }
     
     /* Msg_Length  */
