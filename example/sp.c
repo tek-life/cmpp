@@ -95,14 +95,14 @@ int main(int argc, char *argv[]) {
     char *spcode = "1065860008";
 
     /* Message Character Encoding */
-    int msgFmt = 0;
+    int msgFmt = 11;
 
     /* Enterprise Number */
     char *spid = user;
 
     /* Cmpp Send Message */
     sequenceId = cmpp_sequence();
-    err = cmpp_submit(&cmpp.sock, sequenceId, spid, spcode, phone, message, msgFmt, delivery);
+    err = cmpp_submit(&cmpp.sock, sequenceId, spid, spcode, phone, message, strlen(message), msgFmt, delivery);
     if (err) {
         fprintf(stderr, "cmpp cmpp_submit error\n");
         goto exit;
