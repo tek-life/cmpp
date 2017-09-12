@@ -135,8 +135,15 @@ int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
 }
 
 int cmpp_send_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned long long timeout) {
+    int ret;
+    long long sendTimeout;
+
+    sendTimeout = sock->sendTimeout;
     cmpp_sock_setting(sock, CMPP_SOCK_SENDTIMEOUT, timeout);
-    return cmpp_send(sock, pack, len);
+    ret = cmpp_send(sock, pack, len);
+    cmpp_sock_setting(sock, CMPP_SOCK_SENDTIMEOUT, sendTimeout);
+
+    return ret;
 }
 
 int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
@@ -184,8 +191,15 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
 }
 
 int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned long long timeout) {
+    int ret;
+    long long recvTimeout;
+
+    recvTimeout = sock->recvTimeout;
     cmpp_sock_setting(sock, CMPP_SOCK_RECVTIMEOUT, timeout);
-    return cmpp_recv(sock, pack, len);
+    ret = cmpp_recv(sock, pack, len);
+    cmpp_sock_setting(sock, CMPP_SOCK_RECVTIMEOUT, recvTimeout);
+
+    return ret;
 }
 
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
