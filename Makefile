@@ -3,10 +3,10 @@ CC = gcc
 CFLAGS = -std=c99 -Wall -pedantic
 INCLUDE = -I /usr/local/include
 
-all: libcmpp2.so
+all: libcmpp.so
 
 libcmpp2.so: src/command.c src/command.h src/packet.c src/packet.h src/utils.c src/utils.h src/socket.c src/socket.h
-	$(CC) $(CFLAGS) $(INCLUDE) -shared -fPIC src/command.c src/packet.c src/socket.c src/utils.c -o libcmpp2.so
+	$(CC) $(CFLAGS) $(INCLUDE) -shared -fPIC src/command.c src/packet.c src/socket.c src/utils.c -o libcmpp.so
 
 example: sp ismg deliver
 
@@ -23,11 +23,11 @@ deliver: example/deliver.c
 
 install:
 	install -m 0644 src/cmpp.h /usr/include
-	install -m 0755 libcmpp2.so /usr/lib64
+	install -m 0755 libcmpp.so /usr/lib64
 
 clean:
 	rm -f src/*.o
-	rm -f libcmpp2.so
+	rm -f libcmpp.so
 	rm -f example/sp
 	rm -f example/ismg
 	rm -f example/deliver
