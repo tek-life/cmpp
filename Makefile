@@ -5,19 +5,19 @@ INCLUDE = -I /usr/local/include
 
 all: libcmpp.so
 
-libcmpp2.so: src/command.c src/command.h src/packet.c src/packet.h src/utils.c src/utils.h src/socket.c src/socket.h
+libcmpp.so: src/command.c src/command.h src/packet.c src/packet.h src/utils.c src/utils.h src/socket.c src/socket.h
 	$(CC) $(CFLAGS) $(INCLUDE) -shared -fPIC src/command.c src/packet.c src/socket.c src/utils.c -o libcmpp.so
 
 example: sp ismg deliver
 
 sp: example/sp.c
-	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp2 example/sp.c -o example/sp
+	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp example/sp.c -o example/sp
 
 ismg: example/ismg.c
-	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp2 example/ismg.c -o example/ismg
+	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp example/ismg.c -o example/ismg
 
 deliver: example/deliver.c
-	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp2 example/deliver.c -o example/deliver
+	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp example/deliver.c -o example/deliver
 
 .PHONY: install clean
 
