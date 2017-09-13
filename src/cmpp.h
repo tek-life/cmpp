@@ -180,9 +180,9 @@ extern int cmpp_connect(cmpp_sock_t *sock, unsigned int sequenceId, const char *
 extern int cmpp_connect_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned char status);
 extern int cmpp_terminate(cmpp_sock_t *sock, unsigned int sequenceId);
 extern int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId);
-extern int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *message, int msgFmt, bool delivery);
+extern int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *content, int length, int msgFmt, bool delivery);
 extern int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result);
-extern int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt);
+extern int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *content, int length, int msgFmt);
 extern int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
 extern int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
                        char *destTerminalId, unsigned int smscSequence);
@@ -201,7 +201,6 @@ extern bool cmpp_check_method(void *pack, size_t len, unsigned int command);
 extern bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password);
 extern int cmpp_sock_setting(cmpp_sock_t *sock, int opt, long long val);
 extern int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
-extern int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
 extern unsigned int cmpp_sequence(void);
 extern unsigned long long cmpp_gen_msgid(int mon, int day, int hour, int min, int sec, int gid, unsigned int seq);
 extern void cmpp_pack_add_string(void *pack, char *val, size_t vallen, size_t *offset, size_t size);

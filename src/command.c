@@ -20,6 +20,9 @@
 #include <sys/time.h>
 #include <signal.h>
 #include "command.h"
+#include "utils.h"
+#include "packet.h"
+#include "socket.h"
 
 int cmpp_connect(cmpp_sock_t *sock, unsigned int sequenceId, const char *user, const char *password) {
     int err;
@@ -160,13 +163,11 @@ int cmpp_terminate_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
     return 0;
 }
 
-int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *message, int msgFmt, bool delivery) {
-
+int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *spcode, char *phone, char *content, int length, int msgFmt, bool delivery) {
     int err;
-    char buff[140];
     cmpp_head_t *head;
     cmpp_pack_t pack;
-    size_t offset, msgLen;
+    size_t offset;
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
@@ -208,19 +209,6 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *sp
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
-    char *tocode = NULL;
-    switch (msgFmt) {
-    case 0:
-        tocode = "ASCII";
-        break;
-    case 8:
-        tocode = "UCS-2";
-        break;
-    case 15:
-        tocode = "GBK";
-        break;
-    }
-
     cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
     /* Msg_Src */
@@ -248,26 +236,10 @@ int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, char *sp
     cmpp_pack_add_string(&pack, phone, strlen(phone), &offset, 21);
 
     /* Msg_Length  */
-    memset(buff, 0, sizeof(buff));
-    if (tocode != NULL) {
-        err = cmpp_conv(message, strlen(message), (char *)buff, sizeof(buff), "UTF-8", tocode);
-        if (err) {
-            return 3;
-        }
-    } else {
-        memcpy(buff, message, strlen(message));
-    }
-
-    if (msgFmt == 8) {
-        msgLen = cmpp_ucs2_strlen(buff);
-    } else {
-        msgLen = strlen(buff);
-    }
-
-    cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
+    cmpp_pack_add_integer(&pack, length < 160 ? length : 159, &offset, 1);
     
     /* Msg_Content */
-    cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
+    cmpp_pack_add_string(&pack, content, length, &offset, length);
 
     /* Reserve  */
     cmpp_pack_add_string(&pack, "0", 1, &offset, 8);
@@ -315,7 +287,7 @@ int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long l
     return 0;
 }
 
-int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *msgContent, int msgFmt) {
+int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *content, int length, int msgFmt) {
     int err;
     size_t offset;
     cmpp_pack_t pack;
@@ -347,19 +319,6 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
     
     /* Msg_Fmt */
-    char *tocode = NULL;
-    switch (msgFmt) {
-    case 0:
-        tocode = "ASCII";
-        break;
-    case 8:
-        tocode = "UCS-2";
-        break;
-    case 15:
-        tocode = "GBK";
-        break;
-    }
-
     cmpp_pack_add_integer(&pack, msgFmt, &offset, 1);
     
     /* Src_terminal_Id */
@@ -367,31 +326,12 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
     
     /* Registered_Delivery */
     cmpp_pack_add_integer(&pack, 0, &offset, 1);
-
-    size_t msgLen;
-    char buff[160];
-
-    memset(buff, 0, sizeof(buff));
-    if (tocode != NULL) {
-        err = cmpp_conv(msgContent, strlen(msgContent), buff, sizeof(buff), "UTF-8", tocode);
-        if (err) {
-            return 2;
-        }
-    } else {
-        memcpy(buff, msgContent, strlen(msgContent));
-    }
-
-    if (msgFmt == 8) {
-        msgLen = cmpp_ucs2_strlen(buff);
-    } else {
-        msgLen = strlen(buff);
-    }
     
     /* Msg_Length  */
-    cmpp_pack_add_integer(&pack, msgLen, &offset, 1);
+    cmpp_pack_add_integer(&pack, length < 160 ? length : 159, &offset, 1);
 
     /* Msg_Content */
-    cmpp_pack_add_string(&pack, buff, msgLen, &offset, msgLen);
+    cmpp_pack_add_string(&pack, content, length, &offset, length);
 
     /* Reserve  */
     cmpp_pack_add_string(&pack, "0", 1, &offset, 8);

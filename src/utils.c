@@ -135,8 +135,15 @@ int cmpp_send(cmpp_sock_t *sock, void *pack, size_t len) {
 }
 
 int cmpp_send_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned long long timeout) {
+    int ret;
+    long long sendTimeout;
+
+    sendTimeout = sock->sendTimeout;
     cmpp_sock_setting(sock, CMPP_SOCK_SENDTIMEOUT, timeout);
-    return cmpp_send(sock, pack, len);
+    ret = cmpp_send(sock, pack, len);
+    cmpp_sock_setting(sock, CMPP_SOCK_SENDTIMEOUT, sendTimeout);
+
+    return ret;
 }
 
 int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
@@ -184,8 +191,15 @@ int cmpp_recv(cmpp_sock_t *sock, void *pack, size_t len) {
 }
 
 int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned long long timeout) {
+    int ret;
+    long long recvTimeout;
+
+    recvTimeout = sock->recvTimeout;
     cmpp_sock_setting(sock, CMPP_SOCK_RECVTIMEOUT, timeout);
-    return cmpp_recv(sock, pack, len);
+    ret = cmpp_recv(sock, pack, len);
+    cmpp_sock_setting(sock, CMPP_SOCK_RECVTIMEOUT, recvTimeout);
+
+    return ret;
 }
 
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId) {
@@ -221,51 +235,6 @@ int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len) {
     }
 
     return -1;
-}
-
-int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode) {
-    iconv_t cd;
-    char *inbuf = (char *)src;
-    size_t *inbytesleft = &slen;
-    char *outbuf = dst;
-    size_t *outbytesleft = &dlen;
-    
-    cd = iconv_open(tocode, fromcode);
-    if (cd != (iconv_t)-1) {
-        iconv(cd, &inbuf, inbytesleft, &outbuf, outbytesleft);
-        iconv_close(cd);
-        return 0;
-    }
-
-    return -1;
-}
-
-size_t cmpp_ucs2_strlen(const char *src) {
-    int i = 0;
-
-    while (i < 140) {
-        if ((src[i] + src[i + 1]) != 0) {
-            i += 2;
-        } else {
-            break;
-        }
-    }
-
-    return i;
-}
-
-int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat,
-                     unsigned char *submitTime, unsigned char *doneTime, unsigned char *destTerminalId,
-                     unsigned int smscSequence) {
-
-    pack->msgId = msgId;
-    memcpy(pack->stat, stat, 7);
-    memcpy(pack->submitTime, submitTime, 10);
-    memcpy(pack->doneTime, submitTime, 10);
-    memcpy(pack->destTerminalId, destTerminalId, 21);
-    pack->smscSequence = smscSequence;
-
-    return 0;
 }
 
 bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password) {

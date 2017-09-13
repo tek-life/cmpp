@@ -47,11 +47,6 @@ int cmpp_recv_timeout(cmpp_sock_t *sock, void *pack, size_t len, unsigned long l
 int cmpp_add_header(cmpp_head_t *chp, unsigned int totalLength, unsigned int commandId, unsigned int sequenceId);
 bool cmpp_check_method(void *pack, size_t len, unsigned int command);
 int cmpp_md5(unsigned char *md, unsigned char *src, unsigned int len);
-int cmpp_conv(const char *src, size_t slen, char *dst, size_t dlen, const char* fromcode, const char* tocode);
-size_t cmpp_ucs2_strlen(const char *src);
-int cmpp_msg_content(cmpp_msg_content_t *pack, size_t len, unsigned long long msgId, unsigned char *stat,
-                     unsigned char *submitTime, unsigned char *doneTime, unsigned char *destTerminalId,
-                     unsigned int smscSequence);
 bool cmpp_check_authentication(cmpp_pack_t *pack, size_t size, const char *user, const char *password);
 int cmpp_free_pack(cmpp_pack_t *pack);
 bool cmpp_check_connect(cmpp_sock_t *sock);
