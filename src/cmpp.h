@@ -184,7 +184,7 @@ extern int cmpp_submit(cmpp_sock_t *sock, unsigned int sequenceId, char *spid, c
 extern int cmpp_submit_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result);
 extern int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *spcode, char *phone, char *content, int length, int msgFmt);
 extern int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned long sequenceId, unsigned long long msgId, unsigned char result);
-extern int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *stat, char *submitTime, char *doneTime,
+extern int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, int stat, char *submitTime, char *doneTime,
                        char *destTerminalId, unsigned int smscSequence);
 extern int cmpp_active_test(cmpp_sock_t *sock, unsigned int sequenceId);
 extern int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId);
