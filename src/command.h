@@ -55,6 +55,6 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
 int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result);
 int cmpp_active_test(cmpp_sock_t *sock, unsigned int sequenceId);
 int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId);
-int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, int stat, char *submitTime, char *doneTime,
+int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *destId, int stat, char *submitTime, char *doneTime,
                 char *destTerminalId, unsigned int smscSequence);
 #endif

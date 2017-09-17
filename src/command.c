@@ -369,7 +369,7 @@ int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long 
 }
 
 
-int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, int stat, char *submitTime, char *doneTime,
+int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, char *destId, int stat, char *submitTime, char *doneTime,
                 char *destTerminalId, unsigned int smscSequence) {
 
     int err;
@@ -390,7 +390,7 @@ int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long m
     cmpp_pack_add_integer(&pack, msgId, &offset, 8);
     
     /* Dest_Id */
-    cmpp_pack_add_string(&pack, destTerminalId, strlen(destTerminalId), &offset, 21);
+    cmpp_pack_add_string(&pack, destId, strlen(destId), &offset, 21);
     
     /* Service_Id */
     cmpp_pack_add_string(&pack, "0000000000", 10, &offset, 10);
