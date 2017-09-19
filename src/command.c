@@ -349,18 +349,29 @@ int cmpp_deliver(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long 
 
 int cmpp_deliver_resp(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long msgId, unsigned char result) {
     int err;
-    cmpp_deliver_resp_t cdrp;
-
-    memset(&cdrp, 0, sizeof(cdrp));
-    err = cmpp_add_header((cmpp_head_t *)&cdrp, sizeof(cdrp), CMPP_DELIVER_RESP, sequenceId);
+    size_t offset;
+    cmpp_pack_t pack;
+    cmpp_head_t *head;
+    
+    memset(&pack, 0, sizeof(pack));
+    head = (cmpp_head_t *)&pack;
+    err = cmpp_add_header((cmpp_head_t *)&pack, sizeof(pack), CMPP_DELIVER_RESP, sequenceId);
     if (err) {
         return 1;
     }
 
-    cdrp.msgId = msgId;
-    cdrp.result = result;
+    offset = sizeof(cmpp_head_t);
 
-    err = cmpp_send(sock, &cdrp, sizeof(cdrp));
+    /* Msg_Id */
+    cmpp_pack_add_integer(&pack, msgId, &offset, 8);
+    
+    /* Result */
+    cmpp_pack_add_integer(&pack, result, &offset, 1);
+
+    /* Total_Length */
+    head->totalLength = htonl(offset);
+    
+    err = cmpp_send(sock, &pack, offset);
     if (err) {
         return (err == -1) ? err : 2;
     }
