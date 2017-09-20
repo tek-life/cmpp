@@ -390,7 +390,7 @@ int cmpp_report(cmpp_sock_t *sock, unsigned int sequenceId, unsigned long long m
     
     memset(&pack, 0, sizeof(pack));
     head = (cmpp_head_t *)&pack;
-    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, cmpp_sequence());
+    err = cmpp_add_header(head, sizeof(cmpp_head_t), CMPP_DELIVER, sequenceId);
     if (err) {
         return 1;
     }
