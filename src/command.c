@@ -124,6 +124,11 @@ int cmpp_active_test_resp(cmpp_sock_t *sock, unsigned int sequenceId) {
         return 1;
     }
 
+    err = cmpp_send(sock, &catrp, sizeof(catrp));
+    if (err) {
+        return (err == -1) ? err : 2;
+    }
+
     return 0;
 }
 
