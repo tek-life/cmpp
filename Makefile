@@ -11,7 +11,7 @@ libcmpp.so: src/command.c src/command.h src/packet.c src/packet.h src/utils.c sr
 example: sp ismg deliver
 
 sp: example/sp.c
-	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp example/sp.c -o example/sp
+	$(CC) $(CFLAGS) -g $(INCLUDE) example/sp.c -o example/sp -lcmpp -pthread -lssl -lcrypto -liconv 
 
 ismg: example/ismg.c
 	$(CC) $(CFLAGS) -g $(INCLUDE) -pthread -lssl -lcrypto -liconv -lcmpp example/ismg.c -o example/ismg

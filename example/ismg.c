@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include "cmpp.h"
 
-int main(int argc, argv char *argv[]) {
+int main(int argc, char *argv[]) {
   if (argc != 3) {
   	printf("Usage: ismg [addr] [port]\n");
   	return 0;
@@ -16,7 +16,7 @@ int main(int argc, argv char *argv[]) {
   char *port = argv[2];
   err = cmpp_init_ismg(&cmpp, addr, atoi(port));
   if (err) {
-    printf("ERROR: %s\n", cmpp_get_error(cmpp.err));
+    printf("ERROR: %s\n", cmpp_get_error(err));
     return 0;
   }
   printf("cmpp server bind %s port %s successfull\n", addr, port);
