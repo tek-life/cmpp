@@ -18,10 +18,29 @@ int main(int argc, char *argv[]) {
     
     signal(SIGPIPE, SIG_IGN);
 
-    char *host = "127.0.0.1";
-    int port = 7890;
-    char *user = "901234";
-    char *password = "123456";
+    char *host = "112.90.92.219;
+    int port = 7990;
+    char *user = "81101";
+    char *password = "81101";
+
+    /* Message Receive Number */
+    char *phone = argv[1];
+
+    /* Message Content */
+    char *message = argv[2];
+
+    /* Delivery Report */
+    bool delivery = false;
+
+    /* Service Code */
+    char *spcode = "10657307975611";
+
+    /* Message Character Encoding */
+    int msgFmt = 11;
+
+    /* Enterprise Number */
+    char *spid = user;
+
 
     /* Cmpp Socket Initialization */
     err = cmpp_init_sp(&cmpp, host, port);
@@ -82,24 +101,6 @@ int main(int argc, char *argv[]) {
     
     sleep(1);
 
-    /* Message Receive Number */
-    char *phone = argv[1];
-
-    /* Message Content */
-    char *message = argv[2];
-
-    /* Delivery Report */
-    bool delivery = false;
-
-    /* Service Code */
-    char *spcode = "1065860008";
-
-    /* Message Character Encoding */
-    int msgFmt = 11;
-
-    /* Enterprise Number */
-    char *spid = user;
-
     /* Cmpp Send Message */
     sequenceId = cmpp_sequence();
     err = cmpp_submit(&cmpp.sock, sequenceId, spid, spcode, phone, message, strlen(message), msgFmt, delivery);
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "cmpp cmpp_submit error\n");
         goto exit;
     }
-    
+    //Todo: should check the cmpp_submit_resp here to check whether the submit is success.
     printf("send message cmpp_submit successfull\n");
     sleep(1);
     
