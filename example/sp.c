@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <arpa/inet.h>
-#include <cmpp.h>
+#include "cmpp.h"
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     
     signal(SIGPIPE, SIG_IGN);
 
-    char *host = "112.90.92.219;
+    char *host = "112.90.92.219";
     int port = 7990;
     char *user = "81101";
     char *password = "81101";
