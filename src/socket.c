@@ -25,8 +25,8 @@
 int cmpp_sock_init(cmpp_sock_t *sock, int fd) {
     sock->fd = fd;
     sock->conTimeout = 3000;
-    sock->sendTimeout = 50;
-    sock->recvTimeout = 50;
+    sock->sendTimeout =5000;
+    sock->recvTimeout =5000;
     pthread_mutex_init(&sock->rlock, NULL);
     pthread_mutex_init(&sock->wlock, NULL);
     return 0;

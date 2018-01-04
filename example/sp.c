@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     char *spcode = "10657307975611";
 
     /* Message Character Encoding */
-    int msgFmt = 11;
+    int msgFmt = 15;
 
     /* Enterprise Number */
     char *spid = user;
